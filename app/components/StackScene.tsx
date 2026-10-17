@@ -31,7 +31,7 @@ export function StackScene({ planes, out }: { planes: string[]; out: string }) {
               aria-pressed={focused === i}
               onClick={() => setFocused(focused === i ? null : i)}
             >
-              {label}
+              <span className="kd-plane-text">{label}</span>
               <span className="kd-plane-x" aria-hidden="true">&times;</span>
             </button>
           </span>
