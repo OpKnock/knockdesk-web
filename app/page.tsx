@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FaqSection } from "./components/FaqSection";
 import { Icon } from "./components/Icon";
+import { StackScene } from "./components/StackScene";
 import { VERSION } from "./lib/site";
 
 const features = [
@@ -111,12 +112,7 @@ export default function Home() {
             </div>
             <p style={{ marginTop: 24 }}><Link href="/privacy" className="kd-link">Read the privacy policy</Link></p>
           </div>
-          <div className="kd-stack" data-progress data-reveal aria-hidden="true">
-            <div className="kd-stack-inner">
-              {planes.map((p, i) => (<div key={p} className="kd-plane" style={{ "--i": i } as React.CSSProperties}>{p}</div>))}
-              <div className="kd-plane out" style={{ "--i": planes.length } as React.CSSProperties}>Prompts to your provider</div>
-            </div>
-          </div>
+          <StackScene planes={planes} out="Prompts to your provider" />
         </div>
       </section>
 
