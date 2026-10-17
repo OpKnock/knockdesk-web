@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
-import { BackToTop } from "../components/BackToTop";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 
 export const metadata: Metadata = {
@@ -13,23 +10,23 @@ export const metadata: Metadata = {
 export default function Cookies() {
   return (
     <>
-      <Nav />
-      <main id="main" className="kd-container kd-legal" style={{ paddingTop: "96px", paddingBottom: "96px", maxWidth: "720px" }}>
+      <main id="main" className="kd-container kd-legal kd-page">
         <Breadcrumbs trail={[{ label: "Cookie Policy" }]} />
-        <h1 style={{ marginBottom: "8px", fontSize: "2.5rem" }}>Cookie Policy</h1>
-        <p style={{ marginBottom: "48px", fontSize: "0.875rem", color: "var(--kd-faint)" }}>
+        <h1>Cookie Policy</h1>
+        <p className="kd-meta">
           Effective: October 17, 2026. Contact: wagdemehul@gmail.com
         </p>
 
         <h2>No cookies are set</h2>
         <p>
           This website does not set cookies, does not use local storage for tracking, and does not embed
-          third-party tracking scripts. There is no cookie banner because there is nothing to consent to.
+          third-party tracking scripts. The small notice at the bottom of the page only tells you this. Clicking
+          &quot;Got it&quot; saves that choice in your browser&apos;s local storage so the notice does not return. Nothing is sent anywhere.
         </p>
 
         <h2>Fonts</h2>
         <p>
-          The Inter typeface is self-hosted at build time through Next.js. Font files are served from this
+          The Inter and Space Grotesk typefaces are self-hosted and bundled with this website. Font files are served from this
           website&apos;s own domain, so Google receives no request and learns nothing about your visit.
         </p>
 
@@ -45,8 +42,6 @@ export default function Cookies() {
           and the change will be visible on this page with a new effective date.
         </p>
       </main>
-      <Footer />
-      <BackToTop />
     </>
   );
 }

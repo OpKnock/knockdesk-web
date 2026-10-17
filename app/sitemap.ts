@@ -1,13 +1,8 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "./lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://knockdesk.app";
-  return [
-    { url: base, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${base}/download`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/cookies`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
-    { url: `${base}/terms`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-  ];
+  const now = new Date();
+  const pages: Array<[string, number, "weekly" | "monthly"]> = [["", 1, "weekly"], ["/download", 0.9, "weekly"], ["/contact", 0.7, "monthly"], ["/privacy", 0.5, "monthly"], ["/terms", 0.5, "monthly"], ["/cookies", 0.3, "monthly"]];
+  return pages.map(([p, priority, changeFrequency]) => ({ url: `${SITE_URL}${p}`, lastModified: now, changeFrequency, priority }));
 }

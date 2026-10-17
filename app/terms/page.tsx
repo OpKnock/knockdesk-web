@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
-import { BackToTop } from "../components/BackToTop";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 
 export const metadata: Metadata = {
@@ -13,11 +10,10 @@ export const metadata: Metadata = {
 export default function Terms() {
   return (
     <>
-      <Nav />
-      <main id="main" className="kd-container kd-legal" style={{ paddingTop: "96px", paddingBottom: "96px", maxWidth: "720px" }}>
+      <main id="main" className="kd-container kd-legal kd-page">
         <Breadcrumbs trail={[{ label: "Terms of Service" }]} />
-        <h1 style={{ marginBottom: "8px", fontSize: "2.5rem" }}>Terms of Service</h1>
-        <p style={{ marginBottom: "48px", fontSize: "0.875rem", color: "var(--kd-faint)" }}>
+        <h1>Terms of Service</h1>
+        <p className="kd-meta">
           Effective: October 17, 2026. Contact: wagdemehul@gmail.com
         </p>
 
@@ -69,8 +65,6 @@ export default function Terms() {
           If these terms change, the updated version will be published on this page with a new effective date. Continued use after changes constitutes acceptance.
         </p>
       </main>
-      <Footer />
-      <BackToTop />
     </>
   );
 }

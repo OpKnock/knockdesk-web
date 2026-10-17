@@ -7,48 +7,17 @@ export const contentType = "image/png";
 export default function OpengraphImage() {
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#05070b",
-          color: "#f2f4f7",
-        }}
-      >
-        <div
-          style={{
-            width: 120,
-            height: 120,
-            borderRadius: 20,
-            border: "6px solid #00e5ff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 48,
-          }}
-        >
-          <div style={{ width: 40, height: 40, borderRadius: 40, border: "6px solid #00e5ff" }} />
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 96, background: "#ffffff", color: "#0b0b0c" }}>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 48 }}>
+          <svg width="88" height="88" viewBox="0 0 443 443">
+            <defs><mask id="m"><rect width="443" height="443" fill="#fff" /><circle cx="222" cy="206" r="166" fill="#000" /><rect y="215" width="443" height="44" fill="#fff" /></mask></defs>
+            <rect width="443" height="443" rx="110" fill="#0b0b0c" mask="url(#m)" />
+          </svg>
+          <div style={{ display: "flex", fontSize: 44, fontWeight: 700, marginLeft: 24 }}>KnockDesk</div>
         </div>
-        <div style={{ display: "flex", fontSize: 88, fontWeight: 700, letterSpacing: "-0.02em" }}>
-          KnockDesk
-        </div>
-        <div
-          style={{
-            display: "flex",
-            fontSize: 34,
-            color: "rgba(242,244,247,0.6)",
-            marginTop: 24,
-          }}
-        >
-          Your AI assistant, without the cloud
-        </div>
-        <div style={{ display: "flex", fontSize: 24, color: "#00e5ff", marginTop: 40, letterSpacing: "0.2em" }}>
-          KNOCKDESK.APP
-        </div>
+        <div style={{ display: "flex", fontSize: 88, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.05 }}>Your AI assistant, without the cloud.</div>
+        <div style={{ display: "flex", fontSize: 32, color: "#3d3d44", marginTop: 32 }}>Free and open source. Runs on your PC.</div>
+        <div style={{ position: "absolute", left: 0, bottom: 0, width: 1200, height: 16, background: "#c93a12", display: "flex" }} />
       </div>
     ),
     size

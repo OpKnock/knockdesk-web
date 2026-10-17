@@ -8,8 +8,8 @@ The site presents the product, hosts the Windows download with checksum verifica
 
 - Next.js (App Router) with TypeScript
 - Plain CSS design system in a single file (`app/globals.css`), no CSS framework
-- Inter typeface, self-hosted at build time by Next.js (no third-party font requests)
-- No analytics, no cookies, no third-party embeds
+- Inter and Space Grotesk variable typefaces, self-hosted via Fontsource (no third-party font requests)
+- No analytics by default, no cookies, no third-party embeds
 - Static output: every route is prerendered at build time
 
 Node.js 22 or newer is required.
@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-The dev server runs at http://localhost:3000.
+The dev server runs at http://localhost:3004.
 
 ## Building
 
@@ -30,13 +30,13 @@ npm run build
 npm run start
 ```
 
-The production server listens on http://localhost:3000 and serves the prerendered routes.
+The production server listens on http://localhost:3004 and serves the prerendered routes.
 
 ## Pages
 
 | Route       | Description                                                      |
 |-------------|------------------------------------------------------------------|
-| `/`         | Hero (canvas 3D point-sphere animation), features, FAQ with filter, download CTA |
+| `/`         | Hero (CSS/SVG brand-mark scene with scroll-linked effects), features, FAQ, download CTA |
 | `/download` | Windows installer, SHA-256 verification steps, system requirements |
 | `/privacy`  | Privacy policy, including an India DPDP Act disclosure          |
 | `/cookies`  | Cookie policy: the site sets no cookies and runs no trackers    |
@@ -44,7 +44,7 @@ The production server listens on http://localhost:3000 and serves the prerendere
 | `/contact`  | Contact form; opens the visitor's own email client               |
 | 404         | Custom not-found page                                            |
 
-Additionally served: `robots.txt`, `sitemap.xml`, `llm.txt`, favicon and apple-touch icons, and a social share image generated at build time by `app/opengraph-image.tsx`.
+Additionally served: `robots.txt`, `sitemap.xml`, `llms.txt`, favicon and apple-touch icons, a web app manifest, and a social share image generated at build time by `app/opengraph-image.tsx`.
 
 ## SEO and structured data
 
@@ -63,10 +63,9 @@ node test/audit.js      # full audit: console errors, horizontal-scroll check, s
 node test/tapcheck.js   # WCAG 2.5.8 tap-target size check
 node test/weight.js     # total transfer weight of the home page
 node test/navcheck.js   # responsive nav visibility rules
-node test/canvascheck.js # hero canvas sizing diagnostics
 ```
 
-Latest results at time of writing: zero console errors on all routes, no horizontal scroll, 206 KB total transfer, sub-second load, every interactive target at least 24 CSS px except inline text links (which the guideline exempts).
+Note: `test/canvascheck.js` targeted the previous hero animation (a `<canvas>` particle sphere) and is now obsolete — the new hero is pure CSS/SVG.
 
 Playwright and Chromium are dev dependencies used by these scripts only; they are not part of the shipped site.
 
@@ -81,26 +80,25 @@ No page in the site references a specific hosting provider, so the choice of pro
 
 ## Configuration
 
-The public base URL is set to `https://knockdesk.app` as a build-time constant. If the site is served under a different domain, update it in these files and rebuild:
+All public settings come from environment variables loaded at build time (see `.env.example`):
 
-| File                          | Field                                    |
-|-------------------------------|------------------------------------------|
-| `app/layout.tsx`              | `metadataBase`, canonical URLs           |
-| `app/robots.ts`               | `Sitemap:` line                          |
-| `app/sitemap.ts`              | page URLs                                |
-| `app/components/Breadcrumbs.tsx` | JSON-LD breadcrumb URLs              |
-| `app/opengraph-image.tsx`     | domain shown on the social card          |
-| `public/llm.txt`              | page list                                |
+| Variable                    | Purpose                                                        |
+|-----------------------------|----------------------------------------------------------------|
+| `NEXT_PUBLIC_SITE_URL`      | Public base URL, used for canonical URLs, sitemap, and JSON-LD (defaults to `https://knockdesk.app`) |
+| `NEXT_PUBLIC_FORM_ENDPOINT` | Optional form backend (Formspree/Web3Forms). Empty = the contact form opens the visitor's email client |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Optional cookieless analytics via Plausible. Empty = no analytics script loads |
+
+The product email address, GitHub URL, and version string are constants in `app/lib/site.ts`.
 
 ## Design decisions
 
-**No analytics.** The site deliberately ships no analytics. The privacy policy and cookie policy commit to zero tracking, and a privacy-first product should keep its own site consistent with that claim. No cookies are set, and fonts are self-hosted, so no third party receives request data. If cookieless, privacy-friendly analytics such as Plausible are ever added, the cookie policy is updated in the same deploy, as promised on that page.
+**No analytics by default.** The site ships no analytics unless `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` is set, in which case only cookieless Plausible loads. The privacy policy and cookie policy commit to zero tracking; if either analytics or a form backend is enabled, those pages must be updated in the same deploy, as promised on the cookies page. Fonts are self-hosted, so no third party receives request data.
 
 **Serverless contact form.** The form composes a `mailto:` link to `wagdemehul@gmail.com` and hands it to the visitor's email client. There is no backend, no database, and nothing collected server-side, which keeps the privacy policy accurate without extra infrastructure. If a form backend is introduced later, the privacy policy must be updated in the same release.
 
 **Outbound attribution.** Download and source links to GitHub carry `utm_source=knockdesk-website`, letting download sources be measured on the GitHub side without running any visitor-side tracking.
 
-**3D-style hero without WebGL.** The hero animation is a rotating point sphere with perspective projection, drawn on a plain 2D canvas in `app/components/ParticleHero.tsx`. It respects `prefers-reduced-motion` by rendering a single static frame, and it keeps the site free of WebAssembly and WebGL dependencies.
+**Scroll-linked hero without WebGL.** The hero is a layered CSS/SVG scene (fifteen copies of the brand mark in `app/page.tsx`, driven by a `--hero` scroll variable set in `app/components/SiteEffects.tsx`). It respects `prefers-reduced-motion`, and it keeps the site free of WebAssembly and WebGL dependencies.
 
 ## License
 

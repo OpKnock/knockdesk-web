@@ -1,7 +1,5 @@
+import Link from "next/link";
 import type { Metadata } from "next";
-import { Nav } from "../components/Nav";
-import { Footer } from "../components/Footer";
-import { BackToTop } from "../components/BackToTop";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 
 export const metadata: Metadata = {
@@ -13,11 +11,10 @@ export const metadata: Metadata = {
 export default function Privacy() {
   return (
     <>
-      <Nav />
-      <main id="main" className="kd-container kd-legal" style={{ paddingTop: "96px", paddingBottom: "96px", maxWidth: "720px" }}>
+      <main id="main" className="kd-container kd-legal kd-page">
         <Breadcrumbs trail={[{ label: "Privacy Policy" }]} />
-        <h1 style={{ marginBottom: "8px", fontSize: "2.5rem" }}>Privacy Policy</h1>
-        <p style={{ marginBottom: "48px", fontSize: "0.875rem", color: "var(--kd-faint)" }}>
+        <h1>Privacy Policy</h1>
+        <p className="kd-meta">
           Effective: October 17, 2026. Contact: wagdemehul@gmail.com
         </p>
 
@@ -60,7 +57,7 @@ export default function Privacy() {
 
         <h2>Retention and deletion</h2>
         <p>
-          Your data stays on your PC until you delete it. Uninstalling KnockDesk preserves your AppData folder. To erase everything, uninstall the app and then delete the folder <code style={{ color: "var(--kd-acc)", fontSize: "0.875rem" }}>%APPDATA%\stonic_gen3</code>.
+          Your data stays on your PC until you delete it. Uninstalling KnockDesk preserves your AppData folder. To erase everything, uninstall the app and then delete the folder <code>%APPDATA%\stonic_gen3</code>.
         </p>
 
         <h2>Generative AI disclosure</h2>
@@ -81,7 +78,7 @@ export default function Privacy() {
         <h2>Cookies</h2>
         <p>
           This website sets no cookies and runs no third-party trackers. Details are on the{" "}
-          <a href="/cookies" style={{ color: "var(--kd-acc)", textDecoration: "none" }}>cookie policy page</a>.
+          <Link href="/cookies">cookie policy page</Link>.
         </p>
 
         <h2>Changes to this policy</h2>
@@ -89,8 +86,6 @@ export default function Privacy() {
           If this policy changes, the updated version will be published on this page with a new effective date.
         </p>
       </main>
-      <Footer />
-      <BackToTop />
     </>
   );
 }

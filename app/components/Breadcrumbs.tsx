@@ -1,41 +1,24 @@
 import Link from "next/link";
+import { SITE_URL } from "../lib/site";
 
 export function Breadcrumbs({ trail }: { trail: Array<{ label: string; href?: string }> }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://knockdesk.app/" },
-      ...trail.map((t, i) => ({
-        "@type": "ListItem",
-        position: i + 2,
-        name: t.label,
-        ...(t.href ? { item: `https://knockdesk.app${t.href}` } : {}),
-      })),
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+      ...trail.map((t, i) => ({ "@type": "ListItem", position: i + 2, name: t.label, ...(t.href ? { item: `${SITE_URL}${t.href}` } : {}) })),
     ],
   };
-
   return (
-    <nav aria-label="Breadcrumb" style={{ marginBottom: "32px" }}>
+    <nav aria-label="Breadcrumb" className="kd-crumbs">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-        <ol style={{ listStyle: "none", display: "flex", flexWrap: "wrap", gap: "8px", padding: 0, fontSize: "0.875rem" }}>
-        <li>
-          <Link href="/" style={{ color: "var(--kd-muted)", textDecoration: "none", display: "inline-block", padding: "4px 0" }}>
-            Home
-          </Link>
-        </li>
+      <ol>
+        <li><Link href="/">Home</Link></li>
         {trail.map((t, i) => (
-          <li key={i} style={{ display: "flex", gap: "8px" }}>
-            <span aria-hidden="true" style={{ color: "var(--kd-faint)", padding: "4px 0" }}>/</span>
-            {t.href ? (
-              <Link href={t.href} style={{ color: "var(--kd-muted)", textDecoration: "none", display: "inline-block", padding: "4px 0" }}>
-                {t.label}
-              </Link>
-            ) : (
-              <span aria-current="page" style={{ color: "var(--kd-text)", padding: "4px 0" }}>
-                {t.label}
-              </span>
-            )}
+          <li key={i} style={{ display: "flex", gap: 8 }}>
+            <span aria-hidden="true" style={{ padding: "8px 0", color: "var(--kd-faint)" }}>/</span>
+            {t.href ? <Link href={t.href}>{t.label}</Link> : <span aria-current="page" style={{ padding: "8px 0", color: "var(--kd-ink)", fontWeight: 600 }}>{t.label}</span>}
           </li>
         ))}
       </ol>
