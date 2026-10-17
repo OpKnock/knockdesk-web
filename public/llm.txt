@@ -1,0 +1,22 @@
+# KnockDesk
+
+> KnockDesk is a free, open-source desktop AI assistant that runs entirely on your PC. Your keys, your data, your control.
+
+- Local-first: no cloud backend, no account, no tracking
+- Voice chat with 9 distinct AI personas
+- Screen capture and computer automation
+- Local memory system that learns your preferences
+- Works with your existing Google Gemini, OpenRouter, or OpenAI-compatible API keys
+- Windows 10+ (macOS in development)
+
+## What this site covers
+
+- / : Product overview and FAQ
+- /download : Download the Windows installer
+- /privacy : Privacy policy (also used as the Microsoft Store privacy policy URL)
+- /terms : Terms of service
+- /contact : Contact form and support
+
+## Who makes it
+
+OpKnock. Contact: wagdemehul@gmail.com
