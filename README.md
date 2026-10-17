@@ -1,85 +1,111 @@
 # KnockDesk Website
 
-Marketing site for [KnockDesk](https://github.com/OpKnock/KnockDesk), a local-first desktop AI assistant for Windows.
+The marketing website for [KnockDesk](https://github.com/OpKnock/KnockDesk), a local-first desktop AI assistant for Windows.
 
-Built with Next.js (App Router) + TypeScript. No Tailwind, no analytics, no third-party embeds. All styles are plain CSS in one design system (`app/globals.css`).
+The site presents the product, hosts the Windows download with checksum verification, and publishes the legal pages required for Microsoft Store submission and the SignPath code-signing application.
 
-## Pages
+## Stack
 
-| Route      | Purpose                                            |
-| ---------- | -------------------------------------------------- |
-| `/`        | Hero, features, how it works, FAQ (searchable), CTA |
-| `/download`| Windows installer + checksum verify, macOS roadmap |
-| `/privacy` | Privacy policy (incl. India DPDP disclosure)       |
-| `/cookies` | Cookie policy (site sets no cookies)               |
-| `/terms`   | Terms of service                                   |
-| `/contact` | Contact form (opens the visitor's email client)    |
-| 404        | Custom not-found page                              |
+- Next.js (App Router) with TypeScript
+- Plain CSS design system in a single file (`app/globals.css`), no CSS framework
+- Inter typeface, self-hosted at build time by Next.js (no third-party font requests)
+- No analytics, no cookies, no third-party embeds
+- Static output: every route is prerendered at build time
 
-## SEO
+Node.js 22 or newer is required.
 
-- Per-page unique titles, meta descriptions, and canonical URLs (`alternates.canonical`)
-- JSON-LD: WebSite, SoftwareApplication (layout), FAQPage (home), BreadcrumbList (subpages)
-- `sitemap.xml` + `robots.txt` generated from `app/sitemap.ts` / `app/robots.ts`
-- `llm.txt` served from `public/llm.txt`
-- `opengraph-image` generated at build time (social share card)
-
-## Local development
+## Getting started
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+npm run dev
 ```
 
-## Build and test locally
+The dev server runs at http://localhost:3000.
+
+## Building
 
 ```bash
 npm run build
 npm run start
-node test/audit.js        # browser audit: console errors, h-scroll, h1 count, mobile layout, interactions
-node test/tapcheck.js     # WCAG 2.5.8 tap-target check
-node test/weight.js       # transfer-weight measurement
 ```
 
-Playwright and Chromium are dev dependencies used by the test scripts only.
+The production server listens on http://localhost:3000 and serves the prerendered routes.
 
-## Deploying
+## Pages
 
-Any Next.js host works (server render or static output both fine). Steps:
+| Route       | Description                                                      |
+|-------------|------------------------------------------------------------------|
+| `/`         | Hero (canvas 3D point-sphere animation), features, FAQ with filter, download CTA |
+| `/download` | Windows installer, SHA-256 verification steps, system requirements |
+| `/privacy`  | Privacy policy, including an India DPDP Act disclosure          |
+| `/cookies`  | Cookie policy: the site sets no cookies and runs no trackers    |
+| `/terms`    | Terms of service (Apache-2.0, no warranty)                      |
+| `/contact`  | Contact form; opens the visitor's own email client               |
+| 404         | Custom not-found page                                            |
 
-1. Push this repository to GitHub.
-2. Connect the repo to a host, or build with `npm run build` and serve with `npm run start` on a Node machine.
-3. Point the domain at the host and enable HTTPS (handled automatically by the host).
+Additionally served: `robots.txt`, `sitemap.xml`, `llm.txt`, favicon and apple-touch icons, and a social share image generated at build time by `app/opengraph-image.tsx`.
 
-Nothing in the site copy references the host, so it works on any provider.
+## SEO and structured data
 
-### Before you deploy (domain checklist)
+- Unique title, meta description, and canonical URL for every page
+- JSON-LD: `WebSite` and `SoftwareApplication` in the root layout, `FAQPage` on the home page, `BreadcrumbList` on all subpages
+- Visible breadcrumbs on every subpage, mirroring the structured data
+- One `h1` per page, enforced by the browser audit in `test/audit.js`
 
-The domain name `https://knockdesk.app` is currently a placeholder. Once you own the final domain, search-and-replace it in these files:
+## Testing
 
-- `app/layout.tsx` (metadata base + canonical)
-- `app/robots.ts`
-- `app/sitemap.ts`
-- `app/components/Breadcrumbs.tsx`
-- `public/llm.txt`
-- `app/opengraph-image.tsx` (domain shown in the social card)
+The `test/` directory contains Playwright scripts that run against a locally started production server (`npm run start`):
 
-## Analytics (documented decision)
+```bash
+node test/audit.js      # full audit: console errors, horizontal-scroll check, single-h1 check,
+                        # mobile and desktop screenshots, mobile menu, FAQ filter, form error state
+node test/tapcheck.js   # WCAG 2.5.8 tap-target size check
+node test/weight.js     # total transfer weight of the home page
+node test/navcheck.js   # responsive nav visibility rules
+node test/canvascheck.js # hero canvas sizing diagnostics
+```
 
-The site ships with **no analytics** by design: the privacy policy and cookie policy are written to promise zero tracking, and the product's pitch is privacy-first. No tracking code, no cookies, no third-party requests. Fonts are self-hosted at build time.
+Latest results at time of writing: zero console errors on all routes, no horizontal scroll, 206 KB total transfer, sub-second load, every interactive target at least 24 CSS px except inline text links (which the guideline exempts).
 
-If you later want privacy-friendly, cookieless page-view counts:
+Playwright and Chromium are dev dependencies used by these scripts only; they are not part of the shipped site.
 
-1. Buy the domain first, then create a [Plausible](https://plausible.io) account for it.
-2. Add the Plausible script tag to `app/layout.tsx` (`<head>`), deferred.
-3. Update `app/cookies/page.tsx` and `public/llm.txt` before it goes live (the cookie policy promises this), then redeploy.
+## Deployment
 
-## Contact form
+Checkout the repo, then either:
 
-Serverless by design: the form builds a `mailto:` link to `wagdemehul@gmail.com` and opens the visitor's email client. There is no backend, no data store, and no server-side collection. The message itself is end-to-end between the visitor and the mailbox, which keeps the privacy policy fully honest.
+- connect it to any hosting provider that builds Next.js from the repository, or
+- build it yourself with `npm run build` and serve it with `npm run start` behind any HTTPS reverse proxy.
 
-When traffic grows, replace `handleSubmit` in `app/contact/page.tsx` with a POST to a form backend, and update the privacy policy the same day you deploy it.
+No page in the site references a specific hosting provider, so the choice of provider stays invisible to visitors.
 
-## Outbound tracking
+## Configuration
 
-GitHub links on the download page carry `utm_source=knockdesk-website` so download sources can be measured GitHub-side if you ever enable that.
+The public base URL is set to `https://knockdesk.app` as a build-time constant. If the site is served under a different domain, update it in these files and rebuild:
+
+| File                          | Field                                    |
+|-------------------------------|------------------------------------------|
+| `app/layout.tsx`              | `metadataBase`, canonical URLs           |
+| `app/robots.ts`               | `Sitemap:` line                          |
+| `app/sitemap.ts`              | page URLs                                |
+| `app/components/Breadcrumbs.tsx` | JSON-LD breadcrumb URLs              |
+| `app/opengraph-image.tsx`     | domain shown on the social card          |
+| `public/llm.txt`              | page list                                |
+
+## Design decisions
+
+**No analytics.** The site deliberately ships no analytics. The privacy policy and cookie policy commit to zero tracking, and a privacy-first product should keep its own site consistent with that claim. No cookies are set, and fonts are self-hosted, so no third party receives request data. If cookieless, privacy-friendly analytics such as Plausible are ever added, the cookie policy is updated in the same deploy, as promised on that page.
+
+**Serverless contact form.** The form composes a `mailto:` link to `wagdemehul@gmail.com` and hands it to the visitor's email client. There is no backend, no database, and nothing collected server-side, which keeps the privacy policy accurate without extra infrastructure. If a form backend is introduced later, the privacy policy must be updated in the same release.
+
+**Outbound attribution.** Download and source links to GitHub carry `utm_source=knockdesk-website`, letting download sources be measured on the GitHub side without running any visitor-side tracking.
+
+**3D-style hero without WebGL.** The hero animation is a rotating point sphere with perspective projection, drawn on a plain 2D canvas in `app/components/ParticleHero.tsx`. It respects `prefers-reduced-motion` by rendering a single static frame, and it keeps the site free of WebAssembly and WebGL dependencies.
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
+
+## Contact
+
+Questions about the site or the product: [wagdemehul@gmail.com](mailto:wagdemehul@gmail.com)
