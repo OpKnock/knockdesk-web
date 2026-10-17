@@ -28,7 +28,7 @@ export default function Download() {
 
       <div className="kd-card" style={{ marginBottom: 24, borderColor: "var(--kd-ink)", borderWidth: 2 }}>
         <h3 style={{ marginBottom: 8 }}>Windows 10 and later (64-bit)</h3>
-        <p style={{ marginBottom: 24 }}>Version {VERSION}. Installer size: 772 MB. Installed size: 2.7 GB.</p>
+        <p style={{ marginBottom: 24 }}>Version {VERSION}. Installer size: 762 MB. Installed size: 2.7 GB.</p>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
           <a href={`${GITHUB}/releases/latest${UTM}`} className="kd-btn kd-btn-primary" rel="noopener noreferrer">Download installer</a>
           <a href={GITHUB} className="kd-link" rel="noopener noreferrer">View source on GitHub</a>
@@ -37,9 +37,12 @@ export default function Download() {
       </div>
 
       <div className="kd-card" style={{ marginBottom: 24 }}>
-        <h3 style={{ marginBottom: 8 }}>macOS</h3>
-        <p style={{ marginBottom: 16 }}>In development. Native app bundle for Apple Silicon and Intel Macs.</p>
-        <strong style={{ color: "var(--kd-acc)" }}>Coming soon</strong>
+        <h3 style={{ marginBottom: 8 }}>macOS 11 or later</h3>
+        <p style={{ marginBottom: 16 }}>Native app bundles for Apple Silicon (arm64) and Intel Macs. Version {VERSION}. Bundle size: about 1 GB per architecture.</p>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
+          <a href={`${GITHUB}/releases/tag/v${VERSION}${UTM}`} className="kd-btn kd-btn-primary" rel="noopener noreferrer">Download for macOS</a>
+        </div>
+        <p style={{ marginTop: 16, fontSize: "0.9375rem", color: "var(--kd-faint)" }}>Bundles are unsigned. After unzipping, right click KnockDesk.app and choose Open on first launch. Checksums are published on the release page.</p>
       </div>
 
       <h2 style={{ fontSize: "2rem", margin: "64px 0 24px" }}>System requirements</h2>
