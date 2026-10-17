@@ -14,7 +14,7 @@ const SITE_URL = "https://knockdesk.app"; // placeholder until domain is purchas
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "KnockDesk — Your Local-First AI Assistant",
+    default: "KnockDesk: Your Local-First AI Assistant",
     template: "%s | KnockDesk",
   },
   description:
@@ -27,12 +27,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "KnockDesk",
-    title: "KnockDesk — Your Local-First AI Assistant",
+    title: "KnockDesk: Your Local-First AI Assistant",
     description: "A privacy-respecting desktop AI assistant that runs entirely on your PC.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "KnockDesk — Your Local-First AI Assistant",
+    title: "KnockDesk: Your Local-First AI Assistant",
     description: "A privacy-respecting desktop AI assistant that runs entirely on your PC.",
   },
   alternates: {

@@ -7,7 +7,7 @@
   --kd-acc-dim: rgba(0, 229, 255, 0.15);
   --kd-text: #f2f4f7;
   --kd-muted: rgba(242, 244, 247, 0.55);
-  --kd-faint: rgba(242, 244, 247, 0.35);
+  --kd-faint: rgba(242, 244, 247, 0.55);
 }
 
 * {

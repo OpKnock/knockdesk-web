@@ -53,7 +53,7 @@ export default function Download() {
           </p>
         </div>
 
-        <div className="kd-card" style={{ marginBottom: "24px", opacity: 0.6 }}>
+        <div className="kd-card" style={{ marginBottom: "24px", borderColor: "var(--kd-border)" }}>
           <h3 style={{ marginBottom: "8px" }}>macOS</h3>
           <p style={{ fontSize: "0.9375rem", marginBottom: "16px" }}>
             In development. Native app bundle for Apple Silicon and Intel Macs.

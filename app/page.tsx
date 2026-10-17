@@ -133,7 +133,7 @@ export default function Home() {
                 { step: "03", title: "Start talking", desc: "Choose a voice persona, set your theme, and start a conversation. Everything else is automatic." },
               ].map((s) => (
                 <div key={s.step}>
-                  <p style={{ fontSize: "3rem", fontWeight: 200, color: "var(--kd-acc)", opacity: 0.3, lineHeight: 1 }}>{s.step}</p>
+                  <p style={{ fontSize: "3rem", fontWeight: 200, color: "var(--kd-acc)", opacity: 0.55, lineHeight: 1 }} aria-hidden="true">{s.step}</p>
                   <h3 style={{ marginTop: "16px", marginBottom: "8px", color: "var(--kd-text)" }}>{s.title}</h3>
                   <p style={{ fontSize: "0.9375rem" }}>{s.desc}</p>
                 </div>
