@@ -26,8 +26,8 @@ export default function Privacy() {
 
         <h2>What stays on your PC</h2>
         <ul>
-          <li><strong>Settings, themes, voice choices:</strong> stored in your AppData folder.</li>
-          <li><strong>API keys:</strong> encrypted with Windows DPAPI. Never written to logs.</li>
+          <li><strong>Settings, chats, contacts, notes, tasks:</strong> stored in the app user-data folder on your PC. Persona and memory files are in Documents\KnockDesk Data.</li>
+          <li><strong>API keys:</strong> configured locally in Settings and used for requests to the providers you enable.</li>
           <li><strong>Chat history and memories:</strong> local JSON and SQLite files.</li>
           <li><strong>Screenshots and captures:</strong> saved to your Downloads folder.</li>
         </ul>
@@ -57,7 +57,7 @@ export default function Privacy() {
 
         <h2>Retention and deletion</h2>
         <p>
-          Your data stays on your PC until you delete it. Uninstalling KnockDesk preserves your AppData folder. To erase everything, uninstall the app and then delete the folder <code>%APPDATA%\stonic_gen3</code>.
+          Your data stays on your PC until you delete it. Uninstalling KnockDesk preserves your data folders. To erase everything, uninstall the app and then delete the folders <code>Documents\KnockDesk Data</code>, <code>Documents\KnockDesk_Vault</code>, and the app user-data folder.
         </p>
 
         <h2>Generative AI disclosure</h2>
@@ -72,7 +72,7 @@ export default function Privacy() {
 
         <h2>India: DPDP Act disclosure</h2>
         <p>
-          For users in India, this site and the KnockDesk app are designed to comply with the Digital Personal Data Protection Act, 2023. This website collects no personal data on any server: the contact form opens your own email client and the message goes directly to the developer mailbox. The KnockDesk app stores your data only on your device. You can erase all of it at any time by uninstalling and deleting the AppData folder named in the Retention section above.
+          For users in India, this site and the KnockDesk app are designed to comply with the Digital Personal Data Protection Act, 2023. This website collects no personal data on any server: the contact form opens your own email client and the message goes directly to the developer mailbox. The KnockDesk app stores your data only on your device. You can erase all of it at any time by uninstalling and deleting the folders named in the Retention section above.
         </p>
 
         <h2>Cookies</h2>

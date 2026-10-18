@@ -1,10 +1,12 @@
 # KnockDesk
 
-> KnockDesk is a free, open-source, local-first AI assistant for Windows 10 or later. It runs on your PC, uses your own API keys (Google Gemini, OpenRouter, or any OpenAI-compatible endpoint), and keeps settings, memories, and chat history on your machine. No account and no subscription. Apache-2.0 licensed. Published by OpKnock.
+> KnockDesk is an open-source, local-first desktop AI assistant for Windows 10 and 11, with a maintained source shell for Windows and macOS. It combines voice, persona, memory, skills, resident agents (AgentTown), World Monitor and computer control. Persona and memory files stay on your PC; prompts go to the AI providers you configure (Google Gemini, OpenRouter, Groq, OpenAI, Moonshot/Kimi). First-party code is Apache-2.0. Published by OpKnock.
 
 ## Pages
 - [Home](https://knockdesk.app/): what KnockDesk does, how it works, FAQ
-- [Download](https://knockdesk.app/download): Windows installer, system requirements, checksum verification
+- [Get KnockDesk](https://knockdesk.app/download): Windows app and source shell
+- [Guide](https://knockdesk.app/guide): setup, API keys, where data lives
+- [About](https://knockdesk.app/about): what it is, status, credits
 - [Privacy Policy](https://knockdesk.app/privacy): what stays on your PC and what leaves it
 - [Cookie Policy](https://knockdesk.app/cookies): this website sets no cookies
 - [Terms of Service](https://knockdesk.app/terms): license, warranty, acceptable use

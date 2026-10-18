@@ -13,8 +13,9 @@ export function Footer() {
         <div>
           <h4>Product</h4>
           <ul>
-            <li><Link href="/download">Download</Link></li>
-            <li><Link href="/#features">Features</Link></li>
+            <li><Link href="/download">Get KnockDesk</Link></li>
+            <li><Link href="/guide">Guide</Link></li>
+            <li><Link href="/about">About</Link></li>
             <li><Link href="/#faq">FAQ</Link></li>
             <li><a href={GITHUB} rel="noopener noreferrer">Source on GitHub</a></li>
           </ul>

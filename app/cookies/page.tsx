@@ -21,7 +21,7 @@ export default function Cookies() {
         <p>
           This website does not set cookies, does not use local storage for tracking, and does not embed
           third-party tracking scripts. The small notice at the bottom of the page only tells you this. Clicking
-          &quot;Got it&quot; saves that choice in your browser&apos;s local storage so the notice does not return. Nothing is sent anywhere.
+          &quot;Got it&quot; saves that choice, and the light or dark mode you pick, in your browser&apos;s local storage so they are remembered. Nothing is sent anywhere.
         </p>
 
         <h2>Fonts</h2>

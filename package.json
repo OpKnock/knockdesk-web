@@ -1,12 +1,11 @@
 {
-  "name": "knockdesk-web",
-  "version": "0.1.0",
+  "name": "knockdesk-site",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3004",
+    "dev": "next dev -p 3005",
     "build": "next build",
-    "start": "next start -p 3004",
-    "lint": "eslint"
+    "start": "next start -p 3005"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.0",
@@ -17,12 +16,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "axe-core": "^4.10.2",
-    "eslint": "^9",
-    "eslint-config-next": "^16.4.2",
-    "playwright": "^1.64.1",
-    "typescript": "^5"
+    "@types/react": "^19.0.0",
+    "typescript": "^5.6.0"
   }
 }
