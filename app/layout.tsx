@@ -9,7 +9,7 @@ import { SiteEffects } from "./components/SiteEffects";
 import { Analytics } from "./components/Analytics";
 import { SITE_URL, EMAIL, GITHUB } from "./lib/site";
 
-const DESC = "A privacy-respecting desktop AI assistant that runs entirely on your PC. Your keys, your data, your control. No cloud account required.";
+const DESC = "KnockDesk is a local-first desktop AI assistant with voice, persona, memory, skills and resident agents. Your files stay on your PC and you choose the AI provider.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }, { media: "(prefers-color-scheme: dark)", color: "#0c0c0e" }] };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {
@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         "@type": "SoftwareApplication",
         name: "KnockDesk",
         applicationCategory: "ProductivityApplication",
-        operatingSystem: "Windows 10 or later",
+        operatingSystem: "Windows 10, Windows 11, macOS (source build)",
         description: DESC,
         license: "https://www.apache.org/licenses/LICENSE-2.0",
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');try{var t=localStorage.getItem('kd-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t}catch(e){}" }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <MarkSprite />
         <a href="#main" className="kd-skip">Skip to content</a>

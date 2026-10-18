@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Mark } from "./Mark";
+import { ThemeToggle } from "./ThemeToggle";
 
 const links = [
   { href: "/#features", label: "Features" },
+  { href: "/guide", label: "Guide" },
+  { href: "/about", label: "About" },
   { href: "/download", label: "Download" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -33,7 +34,9 @@ export function Nav() {
             ))}
           </ul>
         </nav>
-        <Link href="/download" className="kd-btn kd-btn-primary kd-nav-cta">Download</Link>
+        <div className="kd-nav-tools">
+          <ThemeToggle />
+          <Link href="/download" className="kd-btn kd-btn-primary kd-nav-cta">Download</Link>
         <button
           type="button"
           className="kd-menu-btn"
@@ -46,6 +49,7 @@ export function Nav() {
             {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
           </svg>
         </button>
+        </div>
       </div>
       {open && (
         <nav id="kd-mobile-menu" className="kd-mobile-menu" aria-label="Mobile">
