@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "KnockDesk — your local-first AI assistant",
+    name: "KnockDesk - your local-first AI assistant",
     short_name: "KnockDesk",
     description:
       "A local-first desktop AI assistant with voice, personas, memory, skills and resident agents. Your files stay on your PC.",

@@ -58,6 +58,7 @@ export function SiteEffects() {
     const stories = gsap.utils.toArray<HTMLElement>("[data-story]");
     let refreshFrame = 0;
     let utilityFrame = 0;
+    let revealsStarted = false;
 
     // Keep non-animated UI behaviour separate from motion: the progress bar and
     // floating actions still work for visitors who prefer reduced motion.
@@ -67,7 +68,6 @@ export function SiteEffects() {
       if (bar.current) bar.current.style.transform = `scaleX(${Math.min(1, y / max)})`;
       top.current?.classList.toggle("visible", y > 400);
       contact.current?.classList.toggle("visible", y > 600);
-      rescueStuck();
     };
     const scheduleUtilities = () => {
       if (utilityFrame) return;
@@ -77,31 +77,16 @@ export function SiteEffects() {
       });
     };
 
-    const scheduleRefresh = () => ScrollTrigger.refresh();
+    // A refresh after a reveal has started re-applies the tween's "from"
+    // state and makes the section blink. Fonts and late images are measured
+    // before the first reveal begins; once motion is underway, leave the
+    // trigger geometry alone.
+    const scheduleRefresh = () => {
+      if (!revealsStarted) ScrollTrigger.refresh();
+    };
 
     const markRevealed = (items: HTMLElement[]) => {
       items.forEach((el) => el.classList.add("in"));
-    };
-
-    // `[data-reveal]` starts at `visibility: hidden`, so an element whose
-    // trigger never fires would stay invisible forever. This is the safety net
-    // for that: anything currently on screen but still hidden is revealed
-    // directly. Elements below the fold are left alone, because they are
-    // waiting on a legitimate scroll trigger.
-    //
-    // It runs on every scroll frame, not once, because ScrollTrigger measures
-    // trigger positions at setup and the self-hosted variable fonts reflow the
-    // page after first paint. A trigger can therefore be missed entirely if
-    // the visitor scrolls through quickly, and the cost of that being a blank
-    // section is far too high to accept.
-    const rescueStuck = () => {
-      for (const el of revealed) {
-        if (el.classList.contains("in")) continue;
-        const r = el.getBoundingClientRect();
-        if (r.top > window.innerHeight || r.bottom < 0) continue;
-        gsap.set(el, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
-        el.classList.add("in");
-      }
     };
 
     motion.add("(prefers-reduced-motion: reduce)", () => {
@@ -147,12 +132,12 @@ export function SiteEffects() {
             ease: "power3.out",
             stagger: { each: 0.105, from: "start" },
             clearProps: "opacity,visibility,transform",
+            onStart: () => { revealsStarted = true; },
             onComplete: () => markRevealed(items),
             scrollTrigger: {
               trigger: parent,
               start: "top 84%",
               once: true,
-              invalidateOnRefresh: true,
             },
           },
         );
@@ -173,12 +158,12 @@ export function SiteEffects() {
             delay: Number.isFinite(delay) ? Math.min(Math.max(delay, 0), 0.24) : 0,
             ease: "power3.out",
             clearProps: "opacity,visibility,transform",
+            onStart: () => { revealsStarted = true; },
             onComplete: () => el.classList.add("in"),
             scrollTrigger: {
               trigger: el,
               start: "top 87%",
               once: true,
-              invalidateOnRefresh: true,
             },
           },
         );
@@ -220,7 +205,6 @@ export function SiteEffects() {
               start: "top top",
               end: "bottom top",
               scrub: 0.45,
-              invalidateOnRefresh: true,
             },
           });
         }
@@ -236,7 +220,6 @@ export function SiteEffects() {
                 start: "top bottom",
                 end: "bottom top",
                 scrub: 0.55,
-                invalidateOnRefresh: true,
               },
             },
           );
@@ -290,31 +273,20 @@ export function SiteEffects() {
     updateUtilities();
     window.addEventListener("scroll", scheduleUtilities, { passive: true });
     window.addEventListener("resize", scheduleUtilities);
-    refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+    refreshFrame = requestAnimationFrame(scheduleRefresh);
 
     // ScrollTrigger measures trigger positions once, at setup. The self-hosted
     // variable fonts swap in after first paint and reflow every section, which
     // leaves those measurements pointing at the wrong scroll offsets and the
     // affected sections never revealing. Refreshing once the fonts have settled
     // -- and again on window load for late images -- puts the offsets back.
-    document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
+    document.fonts?.ready.then(scheduleRefresh).catch(() => {});
     window.addEventListener("load", scheduleRefresh);
-
-    // Safety net for a missed trigger: anything on screen but still hidden is
-    // revealed. The scroll handler calls this on every frame, and this timer
-    // covers the case where the visitor never scrolls at all.
-    const failsafe = window.setTimeout(() => {
-      ScrollTrigger.refresh();
-      requestAnimationFrame(() => {
-        rescueStuck();
-      });
-    }, 1500);
 
     return () => {
       window.removeEventListener("scroll", scheduleUtilities);
       window.removeEventListener("resize", scheduleUtilities);
       window.removeEventListener("load", scheduleRefresh);
-      window.clearTimeout(failsafe);
       if (refreshFrame) cancelAnimationFrame(refreshFrame);
       if (utilityFrame) cancelAnimationFrame(utilityFrame);
       motion.revert();
