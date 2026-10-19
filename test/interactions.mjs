@@ -43,51 +43,58 @@ const base = 'http://127.0.0.1:3005';
   });
   check('hero panel parallax responds', tilt.px !== '' && tilt.px !== '0', JSON.stringify(tilt));
 
-  // --- layer slips: every one must be clickable -------------------------
-  const count = await page.$$eval('.kd-slip', (e) => e.length);
-  check('four slips render', count === 4, 'count=' + count);
+  // --- data-flow diagram: every layer must be selectable ----------------
+  const count = await page.$$eval('.kd-flow-row', (e) => e.length);
+  check('four layers render', count === 4, 'count=' + count);
 
-  const rects = await page.$$eval('.kd-slip', (els) =>
-    els.map((e) => {
-      const r = e.getBoundingClientRect();
-      return { top: Math.round(r.top), bottom: Math.round(r.bottom), pos: getComputedStyle(e).position };
-    }));
-  check('slips are absolutely stacked (not in flow)', rects.every((r) => r.pos === 'absolute'), JSON.stringify(rects[0]));
+  // The layers run top to bottom, and the network boundary sits between the
+  // third and the fourth.
+  const order = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('.kd-flow-row')];
+    const boundary = document.querySelector('.kd-flow-boundary');
+    return {
+      tops: rows.map((r) => Math.round(r.getBoundingClientRect().top)),
+      boundaryTop: boundary ? Math.round(boundary.getBoundingClientRect().top) : null,
+      lastIsOut: rows[3] ? rows[3].classList.contains('kd-flow-row-out') : false,
+    };
+  });
+  check('layers are stacked in order', order.tops.every((t, i) => i === 0 || t > order.tops[i - 1]), JSON.stringify(order.tops));
+  check('the network boundary sits above the outbound layer',
+    order.boundaryTop !== null && order.boundaryTop < order.tops[3] && order.boundaryTop > order.tops[2],
+    `boundary=${order.boundaryTop} last=${order.tops[3]}`);
+  check('only the last layer is the outbound one', order.lastIsOut === true);
 
   for (let i = 0; i < count; i++) {
-    await page.$$eval('.kd-slip', (els, idx) => els[idx].click(), i);
+    await page.$$eval('.kd-flow-row', (els, idx) => els[idx].click(), i);
     await page.waitForTimeout(420);
     const state = await page.evaluate(() => {
-      const els = Array.from(document.querySelectorAll('.kd-slip'));
+      const rows = Array.from(document.querySelectorAll('.kd-flow-row'));
       return {
-        active: els.findIndex((e) => e.dataset.active === 'true'),
-        blurb: document.querySelector('.kd-layers-blurb').textContent.trim(),
-        points: document.querySelectorAll('.kd-layers-info li').length,
-        overlap: els.every((e) => {
-          const t = getComputedStyle(e).transform;
-          return t !== 'none';
-        }),
+        active: rows.findIndex((e) => e.classList.contains('is-active')),
+        blurb: document.querySelector('.kd-flow-blurb')?.textContent.trim() || '',
+        points: document.querySelectorAll('.kd-flow-points li').length,
+        files: document.querySelectorAll('.kd-flow-file').length,
       };
     });
-    check(`slip ${i} selects and shows its info`, state.active === i && state.points === 3,
-      `active=${state.active} points=${state.points} overlap=${state.overlap} blurb="${state.blurb.slice(0, 46)}"`);
+    check(`layer ${i} selects and shows its info`, state.active === i && state.points === 3 && state.files > 0,
+      `active=${state.active} points=${state.points} files=${state.files} blurb="${state.blurb.slice(0, 46)}"`);
   }
 
   // keyboard reachability
-  // Wait for the scroll reveal to finish first: the deck is hidden with
+  // Wait for the scroll reveal to finish first: the diagram is hidden with
   // `visibility: hidden` until its tween completes, and .focus() on a hidden
   // element is a silent no-op.
-  await page.evaluate(() => document.querySelector('.kd-layers-stack')?.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.evaluate(() => document.querySelector('.kd-flow')?.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await page.waitForFunction(() => {
-    const el = document.querySelectorAll('.kd-slip')[2];
+    const el = document.querySelectorAll('.kd-flow-row')[2];
     return el && getComputedStyle(el).visibility === 'visible';
   }, null, { timeout: 5000 });
-  await page.evaluate(() => document.querySelectorAll('.kd-slip')[2].focus());
+  await page.evaluate(() => document.querySelectorAll('.kd-flow-row')[2].focus());
   await page.keyboard.press('Enter');
   await page.waitForTimeout(400);
   const kb = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('.kd-slip')).findIndex((e) => e.dataset.active === 'true'));
-  check('slips work from the keyboard', kb === 2, 'active=' + kb);
+    Array.from(document.querySelectorAll('.kd-flow-row')).findIndex((e) => e.classList.contains('is-active')));
+  check('layers work from the keyboard', kb === 2, 'active=' + kb);
 
   // --- orb is gone, no API-costs text anywhere ---------------------------
   const body = await page.content();

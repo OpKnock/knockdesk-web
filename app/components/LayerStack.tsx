@@ -3,11 +3,16 @@
 import { useState } from "react";
 
 /**
- * Overlapping layers of the app's data flow.
+ * The data-flow diagram.
  *
- * The four slips sit on top of each other; selecting one brings it forward
- * and shows what that layer actually means. The last slip is the one that
- * leaves the machine, so it is the accent and starts selected.
+ * The four layers of what KnockDesk holds, drawn as a vertical pipeline
+ * running from your disk down to your AI provider. The three local layers sit
+ * above a drawn network boundary and the one outbound layer sits below it, so
+ * the point of the section is visible without reading anything: everything
+ * stays here until the boundary, and only one thing crosses it.
+ *
+ * Selecting a layer opens it, showing what it holds and the files it is made
+ * of. The content is the same as before; only the shape of it is new.
  */
 
 type Layer = {
@@ -16,6 +21,10 @@ type Layer = {
   tag: string;
   blurb: string;
   points: string[];
+  /** The concrete files this layer is made of. Shown when the layer is open. */
+  files: string[];
+  /** The one layer that leaves the machine. */
+  outbound?: boolean;
 };
 
 const layers: Layer[] = [
@@ -24,28 +33,49 @@ const layers: Layer[] = [
     title: "Persona and memory",
     tag: "Stays on your PC",
     blurb: "Plain files in your Documents folder. Open them, edit them, delete them.",
-    points: ["SOUL.md and MEMORY.md are readable Markdown", "Custom skills use the same plain format", "Nothing is locked inside a database you cannot open"],
+    points: [
+      "SOUL.md and MEMORY.md are readable Markdown",
+      "Custom skills use the same plain format",
+      "Nothing is locked inside a database you cannot open",
+    ],
+    files: ["SOUL.md", "MEMORY.md", "skills/"],
   },
   {
     id: "chats",
     title: "Chats and notes",
     tag: "Stays on your PC",
     blurb: "Your conversations, tasks, contacts, and notes, in the app's local data folder.",
-    points: ["Readable by you, exportable, and deletable", "No KnockDesk server holds a copy", "Summaries are built from what you keep"],
+    points: [
+      "Readable by you, exportable, and deletable",
+      "No KnockDesk server holds a copy",
+      "Summaries are built from what you keep",
+    ],
+    files: ["chats/", "notes/", "contacts/"],
   },
   {
     id: "settings",
     title: "Settings and keys",
     tag: "Stays on your PC",
     blurb: "Your API keys never leave the machine. They are stored with your Windows account's protection.",
-    points: ["Add a key in Settings, then AI Engine", "Rotate or remove it whenever you like", "Keys are redacted from logs and screenshots"],
+    points: [
+      "Add a key in Settings, then AI Engine",
+      "Rotate or remove it whenever you like",
+      "Keys are redacted from logs and screenshots",
+    ],
+    files: ["settings.json", "keys (OS-protected)"],
   },
   {
     id: "provider",
     title: "Prompts to your provider",
     tag: "Leaves, when you enable it",
     blurb: "Only this layer goes out, and only to a provider you chose and configured yourself.",
-    points: ["Nothing is sent until you add your own key", "You pick the provider per feature", "That provider's own policy applies to its side"],
+    points: [
+      "Nothing is sent until you add your own key",
+      "You pick the provider per feature",
+      "That provider's own policy applies to its side",
+    ],
+    files: ["to the provider you chose"],
+    outbound: true,
   },
 ];
 
@@ -55,37 +85,59 @@ export function LayerStack() {
 
   return (
     <div className="kd-layers" data-reveal>
-      <div className="kd-layers-stack" role="group" aria-label="Data layers">
-        {layers.map((l, i) => (
-          <button
-            key={l.id}
-            type="button"
-            className="kd-slip"
-            data-active={i === active}
-            data-out={l.id === "provider"}
-            style={{ ["--i" as string]: i }}
-            onClick={() => setActive(i)}
-            aria-pressed={i === active}
-          >
-            {/* The card's whole upper area is cover space: the slip above it
-                overlaps that zone, so nothing readable is ever hidden. */}
-            <span className="kd-slip-body">
-              <span className="kd-slip-tag">{l.tag}</span>
-              <span className="kd-slip-title">{l.title}</span>
-            </span>
-          </button>
-        ))}
+      <div className="kd-flow" role="group" aria-label="Data layers">
+        {layers.map((l, i) => {
+          const isActive = i === active;
+          return (
+            <div key={l.id} className="kd-flow-slot">
+              {l.outbound && (
+                <p className="kd-flow-boundary">
+                  <span>network boundary</span>
+                </p>
+              )}
+              <button
+                type="button"
+                className={
+                  "kd-flow-row" + (l.outbound ? " kd-flow-row-out" : "") + (isActive ? " is-active" : "")
+                }
+                onClick={() => setActive(i)}
+                aria-pressed={isActive}
+              >
+                <span className="kd-flow-idx" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="kd-flow-body">
+                  <span className="kd-flow-title">{l.title}</span>
+                  <span className="kd-flow-tag">{l.tag}</span>
+                  {isActive && (
+                    <span className="kd-flow-files">
+                      {l.files.map((f) => (
+                        <span key={f} className="kd-flow-file">
+                          {f}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </span>
+                <span className="kd-flow-mark" aria-hidden="true" />
+              </button>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="kd-layers-info" aria-live="polite">
-        <p className="kd-layers-blurb">{layer.blurb}</p>
-        <ul>
-          {layer.points.map((p) => (
-            <li key={p}>{p}</li>
-          ))}
-        </ul>
-        <p className="kd-layers-hint">Select a layer to see what it means.</p>
+      <div className="kd-flow-detail" aria-live="polite">
+        {/* Keyed so the panel re-animates when a different layer is opened. */}
+        <div key={layer.id} className="kd-flow-detail-inner">
+          <p className="kd-flow-blurb">{layer.blurb}</p>
+          <ul className="kd-flow-points">
+            {layer.points.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </div>
       </div>
+      <p className="kd-flow-hint">Select a layer to see what it holds.</p>
     </div>
   );
 }
