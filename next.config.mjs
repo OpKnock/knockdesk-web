@@ -66,6 +66,20 @@ const headers = [
   { key: "Content-Security-Policy", value: csp },
 ];
 
+/*
+ * The document is prerendered at build time, so a browser that cached an old
+ * copy would keep loading the old markup and the old asset hashes after a
+ * deploy, and the page would look like nothing had changed. `no-cache` makes
+ * the browser revalidate the document every time; `s-maxage` still lets a CDN
+ * serve it from the edge without going back to the origin.
+ *
+ * The build output is content hashed, so it is safe to cache for a year and
+ * is never stale. It gets its own rule, which is matched after the general
+ * one and therefore wins.
+ */
+const documentCache = { key: "Cache-Control", value: "public, s-maxage=31536000, no-cache" };
+const assetCache = { key: "Cache-Control", value: "public, max-age=31536000, immutable" };
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
@@ -76,7 +90,10 @@ const nextConfig = {
   // and ignores this project's package-lock.json.
   turbopack: { root },
   async headers() {
-    return [{ source: "/:path*", headers }];
+    return [
+      { source: "/:path*", headers: [...headers, documentCache] },
+      { source: "/_next/static/:path*", headers: [assetCache] },
+    ];
   },
 };
 
