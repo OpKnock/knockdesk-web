@@ -17,7 +17,7 @@ const WIN = {
   detail: "64-bit installer, per-user, no admin rights needed",
   file: "KnockDesk-Setup-3.1.12-x64.exe",
   size: "779 MB",
-  sha: "6792E8F79435426E7474C80FFE6CA10A2DCDCED6C53164579993AA1AF45CAF48",
+  sha: "324952F682600CCA058CAA3857D0B13C6E57B0580CFA7E4960ACB914EFC9AF2C",
 };
 const MACS = [
   {
