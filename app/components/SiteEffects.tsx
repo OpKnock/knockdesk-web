@@ -74,7 +74,43 @@ export function SiteEffects() {
       utilityFrame = requestAnimationFrame(() => {
         utilityFrame = 0;
         updateUtilities();
+        rescueStuck();
       });
+    };
+
+    // Safety net for an element whose trigger never fires. This happens for
+    // real when the self-hosted variable fonts load late: the page reflows
+    // after the scroll has already passed a section, so a trigger measured
+    // against the pre-font geometry sits at the wrong offset and never
+    // fires, leaving content the visitor can never reach.
+    //
+    // Two rules keep it from ever blinking, which is why the previous
+    // per-frame version of this was a bug and this one is not:
+    //   1. only elements with no "in" marker are touched, so anything a
+    //      tween has begun (or finished) is skipped entirely;
+    //   2. each element is marked "in" the instant it is rescued, so the
+    //      forced style write happens exactly once per element, ever.
+    const rescueStuck = () => {
+      for (const el of revealed) {
+        if (el.classList.contains("in")) continue;
+        const r = el.getBoundingClientRect();
+        // Below the fold or already scrolled past: a legitimate scroll
+        // trigger still owns it, so leave it to that.
+        if (r.top > window.innerHeight || r.bottom < 0) continue;
+        gsap.set(el, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
+        el.classList.add("in");
+      }
+    };
+
+    // One-shot pass once the layout has actually settled, so a visitor who
+    // never scrolls still cannot be left with invisible content.
+    let fontsReady = false;
+    let windowLoaded = false;
+    let rescueSettled = false;
+    const maybeSettleRescue = () => {
+      if (rescueSettled || !fontsReady || !windowLoaded) return;
+      rescueSettled = true;
+      requestAnimationFrame(rescueStuck);
     };
 
     // A refresh after a reveal has started re-applies the tween's "from"
@@ -85,7 +121,13 @@ export function SiteEffects() {
       if (!revealsStarted) ScrollTrigger.refresh();
     };
 
-    const markRevealed = (items: HTMLElement[]) => {
+    // The reveal is marked as underway the moment it begins, not when it
+    // ends. `[data-reveal].in` is what the stylesheet switches to visible,
+    // and a tween's own inline autoAlpha outranks the class, so marking at
+    // onStart does not show anything early. What it does do is give the
+    // rescue below a marker for "a tween already owns this element", so it
+    // never rewrites styles mid-animation, which is what used to blink.
+    const markStarted = (items: HTMLElement[]) => {
       items.forEach((el) => el.classList.add("in"));
     };
 
@@ -93,7 +135,7 @@ export function SiteEffects() {
       // No hidden content, parallax, count-up or scroll-linked transitions in
       // reduced-motion mode. Content remains fully available immediately.
       gsap.set(revealed, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
-      markRevealed(revealed);
+      markStarted(revealed);
       gsap.set("[data-hero-copy], [data-hero-copy] > *, [data-hero-panel]", {
         autoAlpha: 1,
         clearProps: "opacity,visibility,transform",
@@ -132,8 +174,7 @@ export function SiteEffects() {
             ease: "power3.out",
             stagger: { each: 0.105, from: "start" },
             clearProps: "opacity,visibility,transform",
-            onStart: () => { revealsStarted = true; },
-            onComplete: () => markRevealed(items),
+            onStart: () => { revealsStarted = true; markStarted(items); },
             scrollTrigger: {
               trigger: parent,
               start: "top 84%",
@@ -158,8 +199,7 @@ export function SiteEffects() {
             delay: Number.isFinite(delay) ? Math.min(Math.max(delay, 0), 0.24) : 0,
             ease: "power3.out",
             clearProps: "opacity,visibility,transform",
-            onStart: () => { revealsStarted = true; },
-            onComplete: () => el.classList.add("in"),
+            onStart: () => { revealsStarted = true; markStarted([el]); },
             scrollTrigger: {
               trigger: el,
               start: "top 87%",
@@ -281,7 +321,12 @@ export function SiteEffects() {
     // affected sections never revealing. Refreshing once the fonts have settled
     // -- and again on window load for late images -- puts the offsets back.
     document.fonts?.ready.then(scheduleRefresh).catch(() => {});
-    window.addEventListener("load", scheduleRefresh);
+    document.fonts?.ready.then(() => { fontsReady = true; maybeSettleRescue(); }).catch(() => {});
+    window.addEventListener("load", () => {
+      windowLoaded = true;
+      scheduleRefresh();
+      maybeSettleRescue();
+    });
 
     return () => {
       window.removeEventListener("scroll", scheduleUtilities);

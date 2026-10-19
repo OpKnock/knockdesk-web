@@ -73,12 +73,12 @@ const headers = [
  * the browser revalidate the document every time; `s-maxage` still lets a CDN
  * serve it from the edge without going back to the origin.
  *
- * The build output is content hashed, so it is safe to cache for a year and
- * is never stale. It gets its own rule, which is matched after the general
- * one and therefore wins.
+ * The build output under /_next/static is content hashed, and Next already
+ * serves those with an immutable one-year policy, so no custom rule is
+ * needed there. Adding one is what makes Next warn about a custom
+ * Cache-Control header.
  */
 const documentCache = { key: "Cache-Control", value: "public, s-maxage=31536000, no-cache" };
-const assetCache = { key: "Cache-Control", value: "public, max-age=31536000, immutable" };
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -90,9 +90,14 @@ const nextConfig = {
   // and ignores this project's package-lock.json.
   turbopack: { root },
   async headers() {
+    // The negative lookahead keeps Next's own routes (_next/data, RSC
+    // payloads and the static assets handled below) on Next's own cache
+    // policy. Covering them with the document's Cache-Control is what
+    // makes Next emit "Custom Cache-Control headers detected": it
+    // overrides the framework's revalidation and can serve a stale client
+    // router cache after a deploy.
     return [
-      { source: "/:path*", headers: [...headers, documentCache] },
-      { source: "/_next/static/:path*", headers: [assetCache] },
+      { source: "/((?!_next/).*)", headers: [...headers, documentCache] },
     ];
   },
 };
