@@ -22,7 +22,11 @@
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 88px; -webkit-font-smoothing: antialiased; text-size-adjust: 100%; }
-body { background: var(--kd-bg); color: var(--kd-text); font-family: var(--kd-body); line-height: 1.65; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+/* `clip` rather than `hidden`: `overflow-x: hidden` turns the element into a
+   scroll container, which silently breaks `position: sticky` for descendants.
+   The layer deck and nav both depend on sticky. `clip` contains the overflow
+   without creating a scroll box. */
+body { background: var(--kd-bg); color: var(--kd-text); font-family: var(--kd-body); line-height: 1.65; overflow-x: clip; min-height: 100vh; display: flex; flex-direction: column; }
 main { flex: 1; }
 a { color: inherit; }
 :focus-visible { outline: 3px solid var(--kd-acc); outline-offset: 3px; }
@@ -50,6 +54,10 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-btn-primary:hover { background: var(--kd-acc-hover); }
 .kd-btn-secondary { background: transparent; color: var(--kd-ink); border-color: var(--kd-ink); }
 .kd-btn-secondary:hover { background: var(--kd-ink); color: var(--kd-on-ink); }
+/* Ghost sits on the dark CTA panel, so it inherits the current colour instead
+   of hard-coding white, which keeps it correct if the panel theme changes. */
+.kd-btn-ghost { background: transparent; color: inherit; border-color: currentColor; }
+.kd-btn-ghost:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
 .kd-link { font-weight: 600; color: var(--kd-ink); text-underline-offset: 6px; text-decoration-thickness: 2px; padding: 12px 0; display: inline-block; }
 .kd-link:hover { color: var(--kd-acc); }
 
@@ -69,7 +77,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-mobile-menu { border-top: 1px solid var(--kd-border); padding: 8px var(--kd-pad) 24px; background: var(--kd-bg); }
 .kd-mobile-menu ul { list-style: none; }
 .kd-mobile-menu a { display: block; padding: 16px 0; font-size: 1.125rem; font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--kd-border); color: var(--kd-ink); }
-.kd-mobile-menu .kd-btn { margin-top: 24px; width: 100%; border-bottom: 2px solid transparent; color: var(--kd-on-acc); }
+.kd-mobile-menu .kd-mobile-menu-cta { margin-top: 24px; width: 100%; color: var(--kd-on-acc); }
 
 /* Hero + panel mock */
 .kd-hero { padding: 72px 0 96px; overflow: hidden; }
@@ -78,8 +86,6 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-hero p.kd-sub { font-size: 1.375rem; margin: 32px 0 40px; max-width: 34ch; color: var(--kd-muted); }
 .kd-hero-actions { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
 .kd-hero-note { margin-top: 24px; font-size: 0.9375rem; color: var(--kd-faint); }
-.kd-btn-ghost { background: transparent; color: inherit; border-color: currentColor; }
-.kd-btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
 
 /* Cursor atmosphere */
 .kd-cursor-glow, .kd-cursor-ring { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 250; opacity: 0; transition: opacity 0.25s; }
@@ -88,7 +94,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-cursor-ring[data-on="true"] { opacity: 1; }
 /* Slips are absolutely stacked; nothing else changes positioning. */
 .kd-magnetic { position: relative; }
-.js .magnetic { transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.js .kd-magnetic { transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
 /* Hero window mock */
 .kd-panel { --px: 0; --py: 0; --mx: 50%; --my: 50%; perspective: 1400px; }
@@ -136,7 +142,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-proof ul { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); }
 .kd-proof li { padding: 28px 24px; border-left: 1px solid var(--kd-border); }
 .kd-proof li:first-child { border-left: 0; padding-left: 0; }
-.kd-proof strong { display: block; font: 600 1.125rem var(--kd-display); color: var(--kd-ink); }
+.kd-proof strong { display: block; font: 600 1.125rem var(--kd-display); color: var(--kd-ink); font-variant-numeric: tabular-nums; }
 .kd-proof span { font-size: 0.9375rem; color: var(--kd-muted); }
 
 /* Features */
@@ -149,34 +155,26 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-feature h3 { margin-bottom: 12px; }
 .kd-feature p { font-size: 1rem; }
 
-/* Overlapping layer slips (interactive) */
-.kd-split { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: start; }
-.kd-layers { position: sticky; top: 96px; display: grid; gap: 28px; }
+/* Data-layer deck: deliberately shallow overlap, with every label kept clear. */
+.kd-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(36px, 5.2vw, 72px); align-items: start; }
+.kd-layers { position: sticky; top: 96px; display: grid; gap: 28px; min-width: 0; }
 .kd-lists { display: grid; gap: 40px; margin-top: 48px; }
+.kd-lists-foot { margin-top: 24px; }
 .kd-lists h3 { margin-bottom: 12px; }
 .kd-lists ul { list-style: none; border-top: 1px solid var(--kd-border); }
 .kd-lists li { padding: 12px 0; border-bottom: 1px solid var(--kd-border); font-size: 1rem; color: var(--kd-muted); }
-.kd-layers-stack { position: relative; perspective: 1500px; height: 320px; transform-style: preserve-3d; }
-/* Deck of slips: each card's upper zone is pure cover space, so the slip
-   above can overlap it deeply without ever hiding readable content. */
-.kd-layers-stack { position: relative; perspective: 1500px; height: 348px; transform-style: preserve-3d; }
-.kd-slip { position: absolute; left: 0; right: 0; top: calc(var(--i) * 76px); height: 116px; display: flex; align-items: flex-end; padding: 0 24px 20px; text-align: left; cursor: pointer; overflow: hidden; border: 2px solid var(--kd-ink); background: var(--kd-plane); border-radius: 8px; box-shadow: 0 20px 36px -22px rgba(0, 0, 0, 0.5); transform: translate3d(calc(var(--i) * 10px), 0, calc(var(--i) * -34px)); transform-origin: 0 100%; opacity: 0.78; transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s, border-color 0.2s, background 0.2s, opacity 0.25s; }
-.kd-slip:hover { opacity: 0.95; }
-.kd-slip[data-active="true"] { opacity: 1; transform: translate3d(calc(var(--i) * 16px), -12px, 40px); box-shadow: 0 34px 56px -26px rgba(0, 0, 0, 0.62); z-index: 6; }
+.kd-layers-stack { position: relative; perspective: 1500px; height: 444px; transform-style: preserve-3d; isolation: isolate; }
+.kd-slip { position: absolute; left: 0; right: calc(var(--i) * 6px); top: calc(var(--i) * 108px); z-index: calc(var(--i) + 1); min-width: 0; height: 120px; display: flex; align-items: flex-end; padding: 0 24px 18px; text-align: left; cursor: pointer; overflow: hidden; border: 1.5px solid var(--kd-ink); background: var(--kd-plane); border-radius: 10px; box-shadow: 0 20px 36px -22px rgba(0, 0, 0, 0.5); transform: translate3d(calc(var(--i) * 6px), 0, calc(var(--i) * -8px)); transform-origin: 50% 100%; opacity: 0.9; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.25s ease, background-color 0.25s ease, opacity 0.25s ease; }
+.kd-slip:hover { opacity: 1; }
+.kd-slip[data-active="true"] { opacity: 1; transform: translate3d(calc(var(--i) * 6px), 0, 36px); z-index: 12; box-shadow: 0 30px 58px -30px rgba(0, 0, 0, 0.58); }
+.kd-slip:focus-visible { z-index: 14; }
 .kd-slip[data-out="true"] { border-color: var(--kd-acc); }
 .kd-slip[data-out="true"][data-active="true"] { background: var(--kd-acc); color: var(--kd-on-acc); }
-.kd-slip-body { display: flex; flex-direction: column; gap: 6px; }
-.kd-slip-tag { font: 600 0.6875rem var(--kd-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--kd-faint); }
+.kd-slip-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 100%; }
+.kd-slip-tag { font: 600 0.6875rem/1.25 var(--kd-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--kd-faint); }
 .kd-slip[data-active="true"] .kd-slip-tag { color: inherit; opacity: 0.85; }
-.kd-slip-title { font: 600 1.375rem var(--kd-display); color: var(--kd-ink); letter-spacing: -0.01em; }
+.kd-slip-title { font: 600 clamp(1.05rem, 1.7vw, 1.375rem)/1.2 var(--kd-display); color: var(--kd-ink); letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .kd-slip[data-active="true"][data-out="true"] .kd-slip-title { color: var(--kd-on-acc); }
-.kd-slip[data-out="true"] { border-color: var(--kd-acc); }
-.kd-slip[data-out="true"][data-active="true"] { background: var(--kd-acc); color: var(--kd-on-acc); }
-.kd-slip-tag { font: 600 0.6875rem var(--kd-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--kd-faint); }
-.kd-slip[data-active="true"] .kd-slip-tag { color: inherit; opacity: 0.85; }
-.kd-slip-title { font: 600 1.375rem var(--kd-display); color: var(--kd-ink); letter-spacing: -0.01em; }
-.kd-slip[data-active="true"][data-out="true"] .kd-slip-title { color: var(--kd-on-acc); }
-.kd-layers-info { border-top: 2px solid var(--kd-ink); padding-top: 20px; min-height: 168px; }
 .kd-layers-info { border-top: 2px solid var(--kd-ink); padding-top: 20px; min-height: 168px; }
 .kd-layers-blurb { font-size: 1.125rem; color: var(--kd-ink); font-weight: 500; margin-bottom: 12px; }
 .kd-layers-info ul { list-style: none; }
@@ -194,11 +192,19 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-page-top .kd-crumbs { margin-bottom: 0; }
 .kd-page-top .kd-crumbs ol { margin-bottom: 0; }
 
-/* Steps */
-.kd-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; perspective: 1200px; }
-.kd-step { border-top: 2px solid var(--kd-ink); padding-top: 24px; }
-.kd-step .n { font: 600 4rem var(--kd-display); color: var(--kd-acc); line-height: 1; letter-spacing: -0.04em; }
+/* Steps: the scrollytelling rail sits behind the row and fills with --sp. */
+.kd-steps { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; padding-bottom: 40px; perspective: 1200px; }
+.kd-step { position: relative; border-top: 2px solid var(--kd-border); padding-top: 24px; transition: border-color 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.kd-step .n { font: 600 4rem var(--kd-display); color: var(--kd-border); line-height: 1; letter-spacing: -0.04em; transition: color 0.4s ease; }
 .kd-step h3 { margin: 24px 0 12px; }
+/* The active step is marked with weight and position, not by fading the text.
+   Dimming the whole card put body copy at roughly 2.4:1 against the page
+   background, which fails WCAG AA; inactive steps now keep full contrast and
+   are distinguished by their rule, numeral and offset alone. */
+.kd-step.on { border-top-color: var(--kd-ink); transform: translateY(-4px); }
+.kd-step.on .n { color: var(--kd-acc); }
+.kd-steps-rail { position: absolute; left: 0; right: 0; bottom: 8px; height: 2px; background: var(--kd-border); }
+.kd-steps-rail i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--sp, 0) * 100%); background: var(--kd-acc); }
 
 /* FAQ */
 .kd-faq-item { border-bottom: 1px solid var(--kd-border); }
@@ -284,47 +290,40 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-fab.visible { opacity: 1; pointer-events: auto; }
 .kd-fab:hover { background: var(--kd-ink); color: var(--kd-on-ink); }
 .kd-fab svg { width: 20px; height: 20px; }
+/* While the notice bar is open it owns the bottom of the screen, so the
+   floating actions move up and the footer gets room to clear it. */
+.kd-notice-open .kd-fab { bottom: 104px; }
+.kd-notice-open .kd-footer { padding-bottom: 140px; }
 .kd-backtop { right: 24px; width: 52px; }
 .kd-float-contact { right: 92px; padding: 0 20px; }
-.kd-notice { position: fixed; left: 24px; bottom: 24px; z-index: 150; max-width: 400px; background: var(--kd-ink); color: var(--kd-on-ink); padding: 20px; border-radius: 4px; display: flex; gap: 16px; align-items: center; }
-.kd-notice p { color: var(--kd-on-ink); font-size: 0.875rem; line-height: 1.5; }
-.kd-notice a { color: var(--kd-on-ink); }
-.kd-notice button { flex-shrink: 0; min-height: 48px; padding: 0 20px; background: var(--kd-on-ink); color: var(--kd-ink); border: 2px solid var(--kd-on-ink); border-radius: 4px; font: 600 0.9375rem var(--kd-body); cursor: pointer; }
-.kd-notice button:hover { border-color: var(--kd-acc); }
+/* Cookie notice: a full-width bottom bar rather than a floating card. A card
+   in the corner sat on top of whatever content happened to be there; a bar
+   reads as a deliberate notice and only ever covers the very bottom of the
+   page. */
+.kd-notice { position: fixed; left: 0; right: 0; bottom: 0; z-index: 150; background: var(--kd-ink); color: var(--kd-on-ink); border-top: 1px solid var(--kd-border); }
+.kd-notice-inner { max-width: 1200px; margin: 0 auto; padding: 16px var(--kd-pad); display: flex; gap: 24px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.kd-notice p { color: var(--kd-on-ink); font-size: 0.9375rem; line-height: 1.5; margin: 0; }
+.kd-notice a { color: var(--kd-on-ink); text-underline-offset: 3px; }
+.kd-notice button { flex-shrink: 0; min-height: 44px; padding: 0 20px; background: var(--kd-on-ink); color: var(--kd-ink); border: 2px solid var(--kd-on-ink); border-radius: 4px; font: 600 0.9375rem var(--kd-body); cursor: pointer; }
+.kd-notice button:hover { border-color: var(--kd-acc); background: var(--kd-acc); color: var(--kd-on-acc); }
 
-/* Scroll reveal: staggered, shallow lift-in */
-.js [data-reveal] { opacity: 0; transform: translateY(26px) scale(0.992); transition: opacity 0.65s ease, transform 0.85s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--d, 0ms); }
-.js [data-reveal].in { opacity: 1; transform: none; }
-.js [data-hero-copy] { transform: translateY(calc(var(--hp, 1) * -22px)); opacity: calc(0.25 + var(--hp, 1) * 0.75); }
-.js [data-hero-panel] { transform: translateY(calc(var(--hp, 0) * 44px)); }
+/* GSAP owns reveal transforms; this CSS only provides the safe pre-animation state. */
+.js [data-reveal] { opacity: 0; visibility: hidden; }
+.js [data-reveal].in { opacity: 1; visibility: visible; }
 
-/* Scroll-linked parallax: elements drift against the scroll direction */
-.kd-parallax { will-change: transform; }
-.js .kd-parallax { transform: translate3d(0, calc((0.5 - var(--p, 0.5)) * -34px), 0); }
-
-/* Scrollytelling steps */
-.kd-steps { position: relative; padding-bottom: 40px; }
-.kd-step { border-top: 2px solid var(--kd-border); opacity: 0.45; transition: opacity 0.4s ease, border-color 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.kd-step.on { opacity: 1; border-top-color: var(--kd-ink); transform: translateY(-4px); }
-.kd-step.on .n { color: var(--kd-acc); }
-.kd-step .n { transition: color 0.4s ease; }
-.kd-steps-rail { position: absolute; left: 0; right: 0; bottom: 8px; height: 2px; background: var(--kd-border); }
-.kd-steps-rail i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--sp, 0) * 100%); background: var(--kd-acc); }
+/* Scrollytelling step state lives with the .kd-step rules above. */
 
 /* Magnetic card tilt + spotlight */
 .kd-feature, .kd-card, .kd-build, .kd-step { position: relative; }
 .kd-feature::after, .kd-card::after, .kd-build::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.35s ease; background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--kd-acc) 9%, transparent), transparent 68%); }
 .kd-feature:hover::after, .kd-card:hover::after, .kd-build:hover::after { opacity: 1; }
 
-/* Count-up figures */
-.kd-proof strong { font-variant-numeric: tabular-nums; }
+/* Count-up figures are handled by the tabular-nums rule on .kd-proof strong. */
 
 @media (max-width: 960px) {
   .kd-hero-grid, .kd-split { grid-template-columns: 1fr; gap: 24px; }
   .kd-split .kd-layers { position: static; }
   .kd-cta-grid { grid-template-columns: 1fr; gap: 32px; }
-  .js [data-hero-panel], .js .kd-parallax { transform: none !important; }
-  .js [data-hero-copy] { opacity: 1; transform: none; }
   .kd-grid-3 { grid-template-columns: repeat(2, 1fr); }
   .kd-steps { grid-template-columns: 1fr; gap: 40px; }
   .kd-proof ul { grid-template-columns: 1fr 1fr; }
@@ -344,11 +343,11 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   .kd-grid-3 { grid-template-columns: 1fr; }
   .kd-hero-actions .kd-btn { width: 100%; }
   .kd-btn { min-height: 56px; }
-  .kd-notice { left: 12px; right: 12px; bottom: 12px; max-width: none; }
+  .kd-notice-inner { padding: 14px var(--kd-pad); gap: 12px; }
+  .kd-notice button { width: 100%; }
   .kd-fab { bottom: 16px; }
   .kd-backtop { right: 16px; }
   .kd-float-contact { right: 80px; }
-  .kd-notice-open .kd-fab { bottom: 120px; }
   .kd-footer-grid { grid-template-columns: 1fr; gap: 32px; }
 }
 @media print {
@@ -360,11 +359,9 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-  .js [data-reveal] { opacity: 1; transform: none; }
-  .js [data-hero-copy] { opacity: 1; transform: none; }
-  .js [data-hero-panel], .js .kd-parallax { transform: none !important; }
-  .kd-step { opacity: 1; border-top-color: var(--kd-ink); }
+  *, *::before, *::after { transition-duration: 0.01ms !important; transition-delay: 0ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  .js [data-reveal] { opacity: 1; visibility: visible; transform: none; }
+  .kd-step { border-top-color: var(--kd-ink); transform: none !important; }
   .kd-cursor-glow, .kd-cursor-ring { display: none; }
   .kd-panel-window { transform: none !important; }
 }
@@ -378,9 +375,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 /* Section rhythm + safety band */
 .kd-safety { background: var(--kd-soft); }
 .kd-section > .kd-container > h2 { max-width: 22ch; }
-
-/* Magnetic hover (set by SiteEffects) */
-.kd-magnetic { transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.kd-section-flush { padding-top: 0; border-top: 0; }
 
 /* Cards grid for secondary features */
 .kd-two { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
@@ -389,6 +384,8 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-chips li { border: 1px solid var(--kd-border); border-radius: 4px; padding: 6px 12px; font-size: 0.875rem; color: var(--kd-ink); background: var(--kd-bg); }
 .kd-code { position: relative; display: flex; gap: 12px; align-items: stretch; margin: 16px 0 24px; }
 .kd-code pre { flex: 1; overflow-x: auto; padding: 16px; background: var(--kd-soft); border: 1px solid var(--kd-border); border-radius: 4px; font: 0.875rem/1.7 ui-monospace, Menlo, Consolas, monospace; color: var(--kd-ink); }
+/* Keyboard users must be able to reach the horizontally scrolling sample. */
+.kd-code pre:focus-visible { outline: 3px solid var(--kd-acc); outline-offset: 2px; }
 .kd-doc h2 { font-size: 2rem; margin: 64px 0 16px; letter-spacing: -0.02em; }
 .kd-doc h3 { margin: 32px 0 8px; }
 .kd-doc p { margin-bottom: 16px; }
@@ -397,6 +394,42 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-doc a:not(.kd-btn):not(.kd-link) { color: var(--kd-acc); text-underline-offset: 3px; }
 .kd-callout { border-left: 4px solid var(--kd-acc); background: var(--kd-soft); padding: 20px 24px; margin: 32px 0; border-radius: 0 4px 4px 0; }
 .kd-callout p { margin: 0; font-size: 1rem; }
-@media (max-width: 960px) { .kd-two { grid-template-columns: 1fr; } .kd-builds { grid-template-columns: 1fr; } }
+@media (max-width: 960px) {
+  .kd-two { grid-template-columns: 1fr; }
+  .kd-builds { grid-template-columns: 1fr; }
+  .kd-split { grid-template-columns: minmax(0, 1fr); gap: 44px; }
+  .kd-layers-stack { max-width: 720px; }
+}
 @media (max-width: 820px) { .kd-nav-cta { display: none; } }
 @media print { .kd-theme { display: none !important; } }
+
+@media (max-width: 640px) {
+  .kd-layers { gap: 22px; }
+  .kd-layers-stack { height: 420px; }
+  .kd-slip { top: calc(var(--i) * 102px); right: calc(var(--i) * 6px); height: 114px; padding: 0 17px 17px; border-radius: 8px; }
+  .kd-slip-title { font-size: clamp(1.02rem, 4vw, 1.25rem); }
+  .kd-layers-info { padding-top: 18px; }
+}
+
+@media (min-width: 961px) and (prefers-reduced-motion: no-preference) {
+  .kd-parallax { will-change: transform; }
+}
+
+/*
+ * Utilities
+ *
+ * Small layout primitives used by pages and components. These replace inline
+ * style objects so spacing and breakpoints stay in one place and can be
+ * adjusted responsively.
+ */
+.kd-actions { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
+.kd-errorpage { padding-top: 128px; padding-bottom: 128px; max-width: 62ch; }
+.kd-errorpage h1 { margin-bottom: 16px; }
+.kd-copy-wide { max-width: 840px; }
+.kd-stack-s { display: grid; gap: 40px; }
+.kd-faq-search { margin-bottom: 40px; }
+.kd-faq-status { margin-top: 8px; font-size: 0.9375rem; }
+.kd-crumbs li { display: flex; gap: 8px; align-items: center; }
+.kd-crumbs-sep { padding: 8px 0; color: var(--kd-faint); }
+.kd-crumb-current { padding: 8px 0; color: var(--kd-ink); font-weight: 600; }
+.kd-copy-fix { overflow-wrap: anywhere; }

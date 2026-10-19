@@ -1,10 +1,10 @@
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
 
-const OUT = process.env.TEMP + '\\site-shots';
-const base = 'http://127.0.0.1:3011';
+const OUT = 'test/shots';
+const base = 'http://127.0.0.1:3005';
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ channel: 'chrome' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const fails = [];
   const check = (name, ok, extra) => {
@@ -38,7 +38,6 @@ const base = 'http://127.0.0.1:3011';
   await page.mouse.move(1180, 500, { steps: 8 });
   await page.waitForTimeout(700);
   const tilt = await page.evaluate(() => {
-    const win = document.querySelector('.kd-panel-window');
     const wrap = document.querySelector('.kd-panel');
     return { px: getComputedStyle(wrap).getPropertyValue('--px').trim(), py: getComputedStyle(wrap).getPropertyValue('--py').trim() };
   });
@@ -75,9 +74,17 @@ const base = 'http://127.0.0.1:3011';
   }
 
   // keyboard reachability
+  // Wait for the scroll reveal to finish first: the deck is hidden with
+  // `visibility: hidden` until its tween completes, and .focus() on a hidden
+  // element is a silent no-op.
+  await page.evaluate(() => document.querySelector('.kd-layers-stack')?.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.waitForFunction(() => {
+    const el = document.querySelectorAll('.kd-slip')[2];
+    return el && getComputedStyle(el).visibility === 'visible';
+  }, null, { timeout: 5000 });
   await page.evaluate(() => document.querySelectorAll('.kd-slip')[2].focus());
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(400);
   const kb = await page.evaluate(() =>
     Array.from(document.querySelectorAll('.kd-slip')).findIndex((e) => e.dataset.active === 'true'));
   check('slips work from the keyboard', kb === 2, 'active=' + kb);

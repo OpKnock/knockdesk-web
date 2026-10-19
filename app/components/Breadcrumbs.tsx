@@ -16,9 +16,9 @@ export function Breadcrumbs({ trail }: { trail: Array<{ label: string; href?: st
       <ol>
         <li><Link href="/">Home</Link></li>
         {trail.map((t, i) => (
-          <li key={i} style={{ display: "flex", gap: 8 }}>
-            <span aria-hidden="true" style={{ padding: "8px 0", color: "var(--kd-faint)" }}>/</span>
-            {t.href ? <Link href={t.href}>{t.label}</Link> : <span aria-current="page" style={{ padding: "8px 0", color: "var(--kd-ink)", fontWeight: 600 }}>{t.label}</span>}
+          <li key={i}>
+            <span aria-hidden="true" className="kd-crumbs-sep">/</span>
+            {t.href ? <Link href={t.href}>{t.label}</Link> : <span aria-current="page" className="kd-crumb-current">{t.label}</span>}
           </li>
         ))}
       </ol>

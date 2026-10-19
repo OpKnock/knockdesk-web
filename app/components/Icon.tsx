@@ -1,4 +1,10 @@
-const paths: Record<string, React.ReactNode> = {
+/**
+ * Inline SVG icon set.
+ *
+ * Names are typed against the map itself, so a typo is a compile error rather
+ * than an empty <svg> at runtime.
+ */
+const paths = {
   mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></>,
   voices: <><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5a3 3 0 010 6M18 14c2 .8 3 2.6 3 6" /></>,
   screen: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></>,
@@ -7,9 +13,11 @@ const paths: Record<string, React.ReactNode> = {
   town: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><path d="M14 17.5h7M17.5 14v7" /></>,
   arrow: <path d="M12 19V5M5 12l7-7 7 7" />,
   chat: <path d="M4 5h16v11H8l-4 4z" />,
-};
+} satisfies Record<string, React.ReactNode>;
 
-export function Icon({ name }: { name: keyof typeof paths | string }) {
+export type IconName = keyof typeof paths;
+
+export function Icon({ name }: { name: IconName }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {paths[name]}

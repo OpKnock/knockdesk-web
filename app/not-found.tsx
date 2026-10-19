@@ -5,11 +5,11 @@ export const metadata: Metadata = { title: "Page not found", robots: { index: fa
 
 export default function NotFound() {
   return (
-    <main id="main" className="kd-container" style={{ padding: "128px var(--kd-pad)" }}>
+    <main id="main" className="kd-container kd-errorpage">
       <p className="kd-eyebrow">Error 404</p>
-      <h1 style={{ marginBottom: 24 }}>Page not found</h1>
-      <p style={{ marginBottom: 40, fontSize: "1.25rem" }}>The page you are looking for does not exist or has been moved.</p>
-      <div style={{ display: "flex", gap: 32, flexWrap: "wrap", alignItems: "center" }}>
+      <h1>Page not found</h1>
+      <p className="kd-lead">The page you are looking for does not exist or has been moved.</p>
+      <div className="kd-actions">
         <Link href="/" className="kd-btn kd-btn-primary">Back to home</Link>
         <Link href="/contact" className="kd-link">Report a broken link</Link>
       </div>

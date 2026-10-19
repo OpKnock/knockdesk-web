@@ -54,7 +54,7 @@ export function LayerStack() {
   const layer = layers[active];
 
   return (
-    <div className="kd-layers">
+    <div className="kd-layers" data-reveal>
       <div className="kd-layers-stack" role="group" aria-label="Data layers">
         {layers.map((l, i) => (
           <button

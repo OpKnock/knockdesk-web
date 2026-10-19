@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { FaqSection } from "./components/FaqSection";
 import { HeroPanel } from "./components/HeroPanel";
-import { Icon } from "./components/Icon";
+import { Icon, type IconName } from "./components/Icon";
 import { LayerStack } from "./components/LayerStack";
+import { VERSION } from "./lib/site";
 
-const features = [
+type Feature = { icon: IconName; title: string; desc: string };
+
+const features: Feature[] = [
   { icon: "mic", title: "Voice assistant", desc: "Talk to your assistant with wake-word detection, speech transcription, and spoken replies. Which speech services run depends on how you configure it." },
   { icon: "voices", title: "9 distinct voice personas", desc: "Choose from Jarvis, Boyfriend, Bro, Mentor, Assistant, Bestie, Girlfriend, Listener, or Partner. Each has its own tone, pitch, and personality." },
   { icon: "screen", title: "Computer control", desc: "Let KnockDesk work with what is on your screen through a visual overlay. You grant control, and you can review what it does." },
@@ -32,7 +35,7 @@ const faqs = [
 const stays = ["Persona and memory files, as plain files you can open", "Custom skills and the file vault", "Chats, contacts, notes, tasks, and settings", "API keys, protected by your Windows account"];
 const leaves = ["Prompts and speech you send to the providers you enable", "News, map, messaging, and remote features, only when you turn them on"];
 
-const safety = [
+const safety: Feature[] = [
   { icon: "mic", title: "The microphone is yours", desc: "Microphone capture starts when you turn it on and stops when you turn it off. Speech is transcribed by the provider you configured, not by us." },
   { icon: "screen", title: "Control needs consent", desc: "Computer control is off by default. It starts only after you approve it, shows an overlay while it works, and stops on a keypress." },
   { icon: "key", title: "Keys stay local", desc: "API keys are stored on your machine with your Windows account's protection and are redacted from logs and screenshots." },
@@ -122,7 +125,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="kd-section" style={{ paddingTop: 0, borderTop: 0 }}>
+      <section className="kd-section kd-section-flush">
         <div className="kd-container kd-two">
           {more.map((m, i) => (
             <div key={m.t} className="kd-card" data-reveal style={{ "--d": `${i * 90}ms` } as React.CSSProperties}>
@@ -134,7 +137,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="kd-section" style={{ background: "var(--kd-soft)" }} id="layers">
+      <section className="kd-section kd-safety" id="layers">
         <div className="kd-container kd-split">
           <div data-reveal>
             <h2>Four layers. Only one can leave your PC.</h2>
@@ -149,7 +152,7 @@ export default function Home() {
                 <ul>{leaves.map((s) => <li key={s}>{s}</li>)}</ul>
               </div>
             </div>
-            <p style={{ marginTop: 24 }}><Link href="/privacy" className="kd-link">Read the privacy policy</Link></p>
+            <p className="kd-lists-foot"><Link href="/privacy" className="kd-link">Read the privacy policy</Link></p>
           </div>
           <LayerStack />
         </div>
@@ -184,7 +187,7 @@ export default function Home() {
             </div>
           </div>
           <ul className="kd-cta-facts">
-            <li><strong>Version 3.1.12</strong><span>Windows installer and macOS bundles</span></li>
+            <li><strong>Version {VERSION}</strong><span>Windows installer and macOS bundles</span></li>
             <li><strong>No account</strong><span>Nothing to sign up for</span></li>
             <li><strong>Apache-2.0</strong><span>First-party code, inspectable</span></li>
           </ul>

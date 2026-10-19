@@ -1,9 +1,9 @@
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
 
-const base = 'http://127.0.0.1:3011';
+const base = 'http://127.0.0.1:3005';
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ channel: 'chrome' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   const fails = [];
@@ -17,8 +17,6 @@ const base = 'http://127.0.0.1:3011';
   await page.waitForTimeout(1600);
   const counts = await page.$$eval('[data-count]', (els) => els.map((e) => e.textContent));
   check('count-up figures reach their real values', counts.join(',') === '9,5', JSON.stringify(counts));
-
-  const jump = (y) => window.scrollTo({ top: y, behavior: 'instant' });
 
   // ---- scroll reveal: walk the whole page first, then measure ------------
   await page.evaluate(async () => {
@@ -83,18 +81,29 @@ const base = 'http://127.0.0.1:3011';
   });
   check('exactly one story step is active', story.onCount === 1, JSON.stringify(story));
 
-  // scroll through the section and confirm the active step advances
+  // scroll through the section and confirm the active step advances.
+  // The assertion has to be "the active step changes", not "it increases":
+  // by the time the section is centred the trigger is already well past its
+  // start, so the active index is often already at the last step and scrolling
+  // further can only leave it there.
   const progressed = await page.evaluate(async () => {
-    const seen = [];
-    for (let i = 1; i <= 8; i++) {
-      window.scrollBy({ top: 240, behavior: 'instant' });
-      await new Promise((res) => setTimeout(res, 240));
-      const steps = Array.from(document.querySelectorAll('[data-story-step]'));
-      seen.push(steps.findIndex((s) => s.classList.contains('on')));
+    const story = document.querySelector('[data-story]');
+    const steps = Array.from(document.querySelectorAll('[data-story-step]'));
+    const seen = new Set();
+    // walk from just above the section down past it
+    const top = story.getBoundingClientRect().top + window.scrollY;
+    for (let y = top - window.innerHeight * 0.9; y <= top + window.innerHeight * 0.9; y += 60) {
+      window.scrollTo({ top: y, behavior: 'instant' });
+      await new Promise((res) => setTimeout(res, 45));
+      seen.add(steps.findIndex((s) => s.classList.contains('on')));
     }
-    return seen;
+    return [...seen].sort((a, b) => a - b);
   });
-  check('active step advances as you scroll', progressed.some((i) => i > story.onIndex), `${story.onIndex} -> ${progressed.join(',')}`);
+  check(
+    'active step advances across the section',
+    progressed.length > 1 && progressed[0] === 0 && progressed[progressed.length - 1] === 2,
+    'distinct active steps seen = ' + JSON.stringify(progressed)
+  );
 
   // ---- magnetic tilt -----------------------------------------------------
   const tilt = await page.evaluate(async () => {

@@ -9,13 +9,13 @@ export function FaqSection({ faqs }: { faqs: Array<{ q: string; a: string }> }) 
 
   return (
     <section className="kd-section" id="faq">
-      <div className="kd-container" style={{ maxWidth: 840 }}>
+      <div className="kd-container kd-copy-wide">
         <h2 data-reveal style={{ marginBottom: 40 }}>Questions, answered</h2>
-        <div style={{ marginBottom: 40 }}>
+        <div className="kd-faq-search">
           <label htmlFor="faq-search" className="kd-label">Search the FAQ</label>
           <input id="faq-search" type="search" className="kd-input" placeholder="Type a keyword, for example: free, offline, macOS" value={query} onChange={(e) => setQuery(e.target.value)} />
           {query && (
-            <p style={{ marginTop: 8, fontSize: "0.9375rem" }} role="status">
+            <p className="kd-faq-status" role="status">
               {filtered.length === 0 ? "No answers match that search. Try a different keyword or contact us." : `${filtered.length} of ${faqs.length} questions match.`}
             </p>
           )}

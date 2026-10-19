@@ -49,7 +49,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');try{var t=localStorage.getItem('kd-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t}catch(e){}" }} />
+        {/* Applies the theme and the `js` marker before first paint. Kept as a
+            separate same-origin file so the CSP needs no 'unsafe-inline' and no
+            inline hash that could drift out of sync with this markup. */}
+        <script src="/theme-init.js" async={false} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <MarkSprite />
         <a href="#main" className="kd-skip">Skip to content</a>

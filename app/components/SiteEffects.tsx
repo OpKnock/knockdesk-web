@@ -1,11 +1,40 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
 
-const clamp = (v: number) => Math.min(1, Math.max(0, v));
+// The cookie notice is dismissed permanently once acknowledged. Reading the
+// flag through useSyncExternalStore keeps it out of an effect: the server
+// snapshot is "not dismissed", so the first client render already knows the
+// real answer instead of flashing the notice in and then hiding it.
+const NOTICE_KEY = "kd-notice";
+
+const subscribeToNotice = (onChange: () => void) => {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+};
+
+const noticeDismissed = () => {
+  try {
+    return localStorage.getItem(NOTICE_KEY) === "1";
+  } catch {
+    // Storage unavailable: treat as not dismissed so the notice still shows.
+    return false;
+  }
+};
+
+const dismissNotice = () => {
+  try {
+    localStorage.setItem(NOTICE_KEY, "1");
+  } catch {
+    // Best effort; the notice still closes for this page view.
+  }
+  window.dispatchEvent(new Event("storage"));
+};
 
 export function SiteEffects() {
   const path = usePathname();
@@ -14,118 +43,281 @@ export function SiteEffects() {
   const contact = useRef<HTMLAnchorElement>(null);
   const glow = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
-  const [notice, setNotice] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (!localStorage.getItem("kd-notice")) setNotice(true);
-    } catch {
-      setNotice(true);
-    }
-  }, []);
+  const dismissed = useSyncExternalStore(subscribeToNotice, noticeDismissed, () => false);
+  const notice = !dismissed;
 
   useEffect(() => {
     document.documentElement.classList.toggle("kd-notice-open", notice);
   }, [notice]);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tracked = Array.from(document.querySelectorAll<HTMLElement>("[data-progress]"));
-    const parallax = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
-    const stories = Array.from(document.querySelectorAll<HTMLElement>("[data-story]"));
-    const heroCopy = document.querySelector<HTMLElement>("[data-hero-copy]");
-    const heroPanel = document.querySelector<HTMLElement>("[data-hero-panel]");
-    let raf = 0;
+    gsap.registerPlugin(ScrollTrigger);
 
-    const update = () => {
-      raf = 0;
+    const motion = gsap.matchMedia();
+    const revealed = gsap.utils.toArray<HTMLElement>("[data-reveal]");
+    const stories = gsap.utils.toArray<HTMLElement>("[data-story]");
+    let refreshFrame = 0;
+    let utilityFrame = 0;
+
+    // Keep non-animated UI behaviour separate from motion: the progress bar and
+    // floating actions still work for visitors who prefer reduced motion.
+    const updateUtilities = () => {
       const y = window.scrollY;
-      const vh = window.innerHeight;
-      const max = document.documentElement.scrollHeight - vh;
-      if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? clamp(y / max) : 0})`;
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      if (bar.current) bar.current.style.transform = `scaleX(${Math.min(1, y / max)})`;
       top.current?.classList.toggle("visible", y > 400);
       contact.current?.classList.toggle("visible", y > 600);
-      if (reduced) return;
+      rescueStuck();
+    };
+    const scheduleUtilities = () => {
+      if (utilityFrame) return;
+      utilityFrame = requestAnimationFrame(() => {
+        utilityFrame = 0;
+        updateUtilities();
+      });
+    };
 
-      // hero: the copy lifts and fades, the panel drifts down slower (parallax)
-      root.style.setProperty("--hero", clamp(y / (vh * 0.9)).toFixed(3));
-      if (heroCopy) {
-        const h = clamp(1 - y / (vh * 0.72));
-        heroCopy.style.opacity = (0.25 + h * 0.75).toFixed(3);
-        heroCopy.style.setProperty("--hp", h.toFixed(3));
-      }
-      if (heroPanel) heroPanel.style.setProperty("--hp", clamp(y / (vh * 0.9)).toFixed(3));
+    const scheduleRefresh = () => ScrollTrigger.refresh();
 
-      // per-element scroll-linked progress, 0 at entry to 1 at exit
-      for (const el of tracked) {
+    const markRevealed = (items: HTMLElement[]) => {
+      items.forEach((el) => el.classList.add("in"));
+    };
+
+    // `[data-reveal]` starts at `visibility: hidden`, so an element whose
+    // trigger never fires would stay invisible forever. This is the safety net
+    // for that: anything currently on screen but still hidden is revealed
+    // directly. Elements below the fold are left alone, because they are
+    // waiting on a legitimate scroll trigger.
+    //
+    // It runs on every scroll frame, not once, because ScrollTrigger measures
+    // trigger positions at setup and the self-hosted variable fonts reflow the
+    // page after first paint. A trigger can therefore be missed entirely if
+    // the visitor scrolls through quickly, and the cost of that being a blank
+    // section is far too high to accept.
+    const rescueStuck = () => {
+      for (const el of revealed) {
+        if (el.classList.contains("in")) continue;
         const r = el.getBoundingClientRect();
-        el.style.setProperty("--s", clamp((vh - r.top) / (vh + r.height) * 1.6 - 0.25).toFixed(3));
-      }
-      for (const el of parallax) {
-        const r = el.getBoundingClientRect();
-        const p = clamp((vh - r.top) / (vh + r.height));
-        el.style.setProperty("--p", p.toFixed(4));
-      }
-
-      // scrollytelling: the section is one row, so the active step advances
-      // with scroll progress through the section rather than per-step position
-      for (const story of stories) {
-        const steps = Array.from(story.querySelectorAll<HTMLElement>("[data-story-step]"));
-        if (!steps.length) continue;
-        const r = story.getBoundingClientRect();
-        const span = Math.max(1, r.height + vh * 0.5);
-        const fill = clamp((vh * 0.5 - r.top) / span);
-        const active = Math.min(steps.length - 1, Math.floor(fill * steps.length));
-        steps.forEach((s, i) => s.classList.toggle("on", i === active));
-        story.style.setProperty("--sp", fill.toFixed(3));
+        if (r.top > window.innerHeight || r.bottom < 0) continue;
+        gsap.set(el, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
+        el.classList.add("in");
       }
     };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
 
-    const revealed = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
-    // stagger by position in the DOM, so groups cascade instead of popping
-    revealed.forEach((el, i) => {
-      if (!el.style.getPropertyValue("--d")) {
-        const sameParent = Array.from(el.parentElement?.children || []).indexOf(el);
-        el.style.setProperty("--d", `${Math.max(0, sameParent) * 80}ms`);
-      }
+    motion.add("(prefers-reduced-motion: reduce)", () => {
+      // No hidden content, parallax, count-up or scroll-linked transitions in
+      // reduced-motion mode. Content remains fully available immediately.
+      gsap.set(revealed, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
+      markRevealed(revealed);
+      gsap.set("[data-hero-copy], [data-hero-copy] > *, [data-hero-panel]", {
+        autoAlpha: 1,
+        clearProps: "opacity,visibility,transform",
+      });
+      stories.forEach((story) => {
+        story.style.setProperty("--sp", "1");
+        const steps = gsap.utils.toArray<HTMLElement>("[data-story-step]", story);
+        steps.forEach((step, index) => step.classList.toggle("on", index === 0));
+      });
     });
-    const countUp = (el: HTMLElement) => {
-      const target = parseFloat(el.dataset.count || "");
-      if (!Number.isFinite(target) || el.dataset.counted === "1") return;
-      el.dataset.counted = "1";
-      if (reduced) { el.textContent = String(target); return; }
-      const dur = 900;
-      const t0 = performance.now();
-      const tick = (now: number) => {
-        const k = Math.min(1, (now - t0) / dur);
-        const eased = 1 - Math.pow(1 - k, 3);
-        el.textContent = String(Math.round(target * eased));
-        if (k < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    };
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) {
-          (e.target as HTMLElement).classList.add("in");
-          countUp(e.target as HTMLElement);
-          io.unobserve(e.target);
-        }
-      }),
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
-    );
-    revealed.forEach((el) => io.observe(el));
 
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    motion.add("(prefers-reduced-motion: no-preference)", () => {
+      // Give sibling cards and steps one shared trigger so their entrances are
+      // staggered as a sequence instead of firing as unrelated animations.
+      const groups = new Map<HTMLElement, HTMLElement[]>();
+      revealed.forEach((el) => {
+        const parent = el.parentElement;
+        if (!parent) return;
+        const siblings = Array.from(parent.children).filter(
+          (child): child is HTMLElement => child instanceof HTMLElement && child.matches("[data-reveal]"),
+        );
+        if (siblings.length > 1) groups.set(parent, siblings);
+      });
+
+      const grouped = new Set<HTMLElement>();
+      groups.forEach((items, parent) => {
+        items.forEach((el) => grouped.add(el));
+        gsap.fromTo(
+          items,
+          { autoAlpha: 0, y: 26, scale: 0.99 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.82,
+            ease: "power3.out",
+            stagger: { each: 0.105, from: "start" },
+            clearProps: "opacity,visibility,transform",
+            onComplete: () => markRevealed(items),
+            scrollTrigger: {
+              trigger: parent,
+              start: "top 84%",
+              once: true,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+      });
+
+      revealed.filter((el) => !grouped.has(el)).forEach((el) => {
+        const rawDelay = getComputedStyle(el).getPropertyValue("--d").trim();
+        const parsedDelay = Number.parseFloat(rawDelay);
+        const delay = rawDelay.endsWith("ms") ? parsedDelay / 1000 : parsedDelay;
+        gsap.fromTo(
+          el,
+          { autoAlpha: 0, y: 24, scale: 0.992 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.78,
+            delay: Number.isFinite(delay) ? Math.min(Math.max(delay, 0), 0.24) : 0,
+            ease: "power3.out",
+            clearProps: "opacity,visibility,transform",
+            onComplete: () => el.classList.add("in"),
+            scrollTrigger: {
+              trigger: el,
+              start: "top 87%",
+              once: true,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+      });
+
+      // The hero has a more immediate, editorial entrance than the content
+      // sections below it.
+      const heroCopy = document.querySelector<HTMLElement>("[data-hero-copy]");
+      const heroPanel = document.querySelector<HTMLElement>("[data-hero-panel]");
+      if (heroCopy) {
+        const copyParts = Array.from(heroCopy.children).filter(
+          (child): child is HTMLElement => child instanceof HTMLElement,
+        );
+        gsap.fromTo(
+          copyParts,
+          { autoAlpha: 0, y: 18 },
+          { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.09, delay: 0.1, ease: "power3.out", clearProps: "opacity,visibility,transform" },
+        );
+      }
+      if (heroPanel) {
+        gsap.fromTo(
+          heroPanel,
+          { autoAlpha: 0, scale: 0.975 },
+          { autoAlpha: 1, scale: 1, duration: 1, delay: 0.2, ease: "power3.out", clearProps: "opacity,visibility" },
+        );
+      }
+
+      // Scroll-linked parallax and the hero fade are intentionally limited to
+      // larger viewports; on phones and tablets the layout stays still.
+      const desktopMotion = gsap.matchMedia();
+      desktopMotion.add("(min-width: 961px)", () => {
+        if (heroCopy) {
+          gsap.to(heroCopy, {
+            y: -20,
+            opacity: 0.28,
+            ease: "none",
+            scrollTrigger: {
+              trigger: ".kd-hero",
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.45,
+              invalidateOnRefresh: true,
+            },
+          });
+        }
+        gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
+          gsap.fromTo(
+            el,
+            { y: 10 },
+            {
+              y: -22,
+              ease: "none",
+              scrollTrigger: {
+                trigger: el,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 0.55,
+                invalidateOnRefresh: true,
+              },
+            },
+          );
+        });
+      });
+
+      // Count the proof figures once when they reach the viewport.
+      gsap.utils.toArray<HTMLElement>("[data-count]").forEach((el) => {
+        const target = Number.parseFloat(el.dataset.count || "");
+        if (!Number.isFinite(target)) return;
+        const counter = { value: 0 };
+        el.textContent = "0";
+        gsap.to(counter, {
+          value: target,
+          duration: 0.9,
+          ease: "power2.out",
+          onUpdate: () => { el.textContent = String(Math.round(counter.value)); },
+          scrollTrigger: { trigger: el, start: "top 91%", once: true },
+        });
+      });
+
+      // Steps share a single scroll progress signal, with exactly one active
+      // state at a time and a rail that fills smoothly between them.
+      stories.forEach((story) => {
+        const steps = gsap.utils.toArray<HTMLElement>("[data-story-step]", story);
+        if (!steps.length) return;
+        const setActive = (index: number) => {
+          const safeIndex = Math.max(0, Math.min(steps.length - 1, index));
+          steps.forEach((step, i) => step.classList.toggle("on", i === safeIndex));
+        };
+        ScrollTrigger.create({
+          trigger: story,
+          start: "top 76%",
+          end: "bottom 62%",
+          onUpdate: (self: { progress: number }) => {
+            story.style.setProperty("--sp", self.progress.toFixed(3));
+            setActive(Math.min(steps.length - 1, Math.floor(self.progress * steps.length)));
+          },
+          onRefresh: (self: { progress: number }) => {
+            story.style.setProperty("--sp", self.progress.toFixed(3));
+            setActive(Math.min(steps.length - 1, Math.floor(self.progress * steps.length)));
+          },
+        });
+      });
+
+      // The nested media query has its own lifecycle, so release its listeners
+      // when the site-wide motion query changes or the route unmounts.
+      return () => desktopMotion.revert();
+    });
+
+    updateUtilities();
+    window.addEventListener("scroll", scheduleUtilities, { passive: true });
+    window.addEventListener("resize", scheduleUtilities);
+    refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+
+    // ScrollTrigger measures trigger positions once, at setup. The self-hosted
+    // variable fonts swap in after first paint and reflow every section, which
+    // leaves those measurements pointing at the wrong scroll offsets and the
+    // affected sections never revealing. Refreshing once the fonts have settled
+    // -- and again on window load for late images -- puts the offsets back.
+    document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
+    window.addEventListener("load", scheduleRefresh);
+
+    // Safety net for a missed trigger: anything on screen but still hidden is
+    // revealed. The scroll handler calls this on every frame, and this timer
+    // covers the case where the visitor never scrolls at all.
+    const failsafe = window.setTimeout(() => {
+      ScrollTrigger.refresh();
+      requestAnimationFrame(() => {
+        rescueStuck();
+      });
+    }, 1500);
+
     return () => {
-      io.disconnect();
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", scheduleUtilities);
+      window.removeEventListener("resize", scheduleUtilities);
+      window.removeEventListener("load", scheduleRefresh);
+      window.clearTimeout(failsafe);
+      if (refreshFrame) cancelAnimationFrame(refreshFrame);
+      if (utilityFrame) cancelAnimationFrame(utilityFrame);
+      motion.revert();
     };
   }, [path]);
 
@@ -247,8 +439,12 @@ export function SiteEffects() {
       </button>
       {notice && (
         <div className="kd-notice" role="region" aria-label="Cookie notice">
-          <p>This site sets no cookies and runs no trackers. <Link href="/cookies">Cookie policy</Link></p>
-          <button type="button" onClick={() => { try { localStorage.setItem("kd-notice", "1"); } catch {} setNotice(false); }}>Got it</button>
+          <div className="kd-notice-inner">
+            <p>
+              This site sets no cookies and runs no trackers. <Link href="/cookies">Cookie policy</Link>
+            </p>
+            <button type="button" onClick={dismissNotice}>Got it</button>
+          </div>
         </div>
       )}
     </>
