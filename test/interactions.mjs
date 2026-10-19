@@ -125,6 +125,48 @@ const base = 'http://127.0.0.1:3005';
   check('the detail panel keeps a constant height across layers',
     new Set(pageStable).size === 1, 'heights=' + JSON.stringify(pageStable));
 
+  // --- FAQ accordion -----------------------------------------------------
+  const faqCount = await page.$$eval('.kd-faq-q', (e) => e.length);
+  check('every question has a button', faqCount >= 5, 'count=' + faqCount);
+
+  // No <summary> is left anywhere. Chrome paints the native disclosure marker
+  // for a summary on top of the first letter and ignores every way of hiding
+  // it, so the questions are plain buttons instead.
+  const summaryCount = await page.$$eval('summary', (e) => e.length);
+  check('no native summary markers are left', summaryCount === 0, 'summaries=' + summaryCount);
+
+  // The first question starts closed and opens on click.
+  const faqState = async () => page.evaluate(() => {
+    const btn = document.querySelector('.kd-faq-q');
+    const panel = document.getElementById(btn.getAttribute('aria-controls'));
+    return {
+      expanded: btn.getAttribute('aria-expanded'),
+      panelHeight: Math.round(panel.getBoundingClientRect().height),
+      text: btn.textContent.trim().slice(0, 24),
+    };
+  });
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const closed = await faqState();
+  check('the first question starts closed', closed.expanded === 'false' && closed.panelHeight === 0, JSON.stringify(closed));
+
+  await page.click('.kd-faq-q');
+  await page.waitForTimeout(600);
+  const opened = await faqState();
+  check('clicking a question opens it', opened.expanded === 'true' && opened.panelHeight > 20, JSON.stringify(opened));
+
+  await page.click('.kd-faq-q');
+  await page.waitForTimeout(600);
+  const reclosed = await faqState();
+  check('clicking it again closes it', reclosed.expanded === 'false' && reclosed.panelHeight === 0, JSON.stringify(reclosed));
+
+  // The search still filters.
+  await page.fill('#faq-search', 'free');
+  await page.waitForTimeout(400);
+  const filtered = await page.$$eval('.kd-faq-q', (e) => e.length);
+  check('the FAQ search filters the questions', filtered > 0 && filtered < faqCount, 'showing ' + filtered + ' of ' + faqCount);
+  await page.fill('#faq-search', '');
+
   // --- orb is gone, no API-costs text anywhere ---------------------------
   const body = await page.content();
   check('orb visual removed', !body.includes('kd-avatar'));

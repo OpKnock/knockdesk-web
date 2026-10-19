@@ -64,6 +64,42 @@ const BASE = process.env.KD_BASE || "http://127.0.0.1:3005";
   const y = await page.evaluate(() => Math.round(window.scrollY));
   check("page still scrolls with the wheel", y > 400, "scrollY=" + y);
 
+  // Navigating to another page must land at the top of that page. The browser
+  // used to leave the visitor near the bottom of the new page, because
+  // `scroll-behavior: smooth` turned the reset into an animation measured
+  // against the outgoing page.
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(600);
+  await page.click('.kd-footer a[href="/terms"]');
+  await page.waitForTimeout(1200);
+  const afterNav = await page.evaluate(() => ({ path: location.pathname, y: Math.round(window.scrollY) }));
+  check("navigating to another page lands at the top", afterNav.path === "/terms" && afterNav.y === 0, JSON.stringify(afterNav));
+
+  // The same for a link in the nav rather than the footer.
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  await page.evaluate(() => window.scrollTo(0, 3000));
+  await page.waitForTimeout(500);
+  await page.click('.kd-nav-links a[href="/about"]');
+  await page.waitForTimeout(1200);
+  const afterNav2 = await page.evaluate(() => ({ path: location.pathname, y: Math.round(window.scrollY) }));
+  check("a nav link also lands at the top", afterNav2.path === "/about" && afterNav2.y === 0, JSON.stringify(afterNav2));
+
+  // The nav must fit at every width. Adding the Source button used to push
+  // the links past the edge of the bar below about 980px.
+  let navOverflows = [];
+  for (const w of [1440, 1280, 1200, 1100, 1025, 1024, 980, 900, 820, 640, 390]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.waitForTimeout(220);
+    const o = await page.evaluate(() => {
+      const inner = document.querySelector(".kd-nav-inner");
+      return Math.round(inner.scrollWidth - inner.clientWidth);
+    });
+    if (o > 1) navOverflows.push(`${w}px over by ${o}px`);
+  }
+  check("the nav fits at every width", navOverflows.length === 0, navOverflows.join(", "));
+  await page.setViewportSize({ width: 1440, height: 900 });
+
   await browser.close();
   console.log(fails === 0 ? "\nALL CHECKS PASSED" : `\n${fails} FAILURE(S)`);
   process.exit(fails === 0 ? 0 : 1);

@@ -321,7 +321,7 @@ export function SiteEffects() {
     };
   }, [path]);
 
-  // Anchor navigation across routes.
+  // Anchor navigation across routes, and the scroll reset between routes.
   //
   // The browser resolves a #fragment against the layout as it exists at the
   // moment it handles the navigation. On a statically prerendered site the
@@ -329,9 +329,15 @@ export function SiteEffects() {
   // have not loaded, and the scroll-reveal system has not run, so the offset
   // the browser computes is wrong and the page lands at the top instead of on
   // the section. Re-resolve the target once the page has settled.
+  //
+  // The same applies in reverse: navigating to a different page has to land
+  // at the top of that page. The browser does not do that on its own here,
+  // because `scroll-behavior: smooth` turns the reset into an animation that
+  // is measured against the outgoing page and is then abandoned part way,
+  // leaving the visitor stranded near the bottom of the new page. The reset is
+  // done here instead, instantly.
   useEffect(() => {
     const hash = window.location.hash;
-    if (!hash || hash === "#") return;
     let cancelled = false;
 
     const scrollToHash = () => {
@@ -341,15 +347,21 @@ export function SiteEffects() {
       target.scrollIntoView({ block: "start", behavior: "auto" });
     };
 
-    scrollToHash();
-    const soon = window.setTimeout(scrollToHash, 80);
-    const later = window.setTimeout(scrollToHash, 400);
-    document.fonts?.ready.then(scrollToHash).catch(() => {});
+    if (hash && hash !== "#") {
+      scrollToHash();
+      const soon = window.setTimeout(scrollToHash, 80);
+      const later = window.setTimeout(scrollToHash, 400);
+      document.fonts?.ready.then(scrollToHash).catch(() => {});
+      return () => {
+        cancelled = true;
+        window.clearTimeout(soon);
+        window.clearTimeout(later);
+      };
+    }
 
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     return () => {
       cancelled = true;
-      window.clearTimeout(soon);
-      window.clearTimeout(later);
     };
   }, [path]);
 
