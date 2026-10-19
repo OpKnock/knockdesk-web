@@ -67,8 +67,12 @@ export function LayerStack() {
             onClick={() => setActive(i)}
             aria-pressed={i === active}
           >
-            <span className="kd-slip-tag">{l.tag}</span>
-            <span className="kd-slip-title">{l.title}</span>
+            {/* The card's whole upper area is cover space: the slip above it
+                overlaps that zone, so nothing readable is ever hidden. */}
+            <span className="kd-slip-body">
+              <span className="kd-slip-tag">{l.tag}</span>
+              <span className="kd-slip-title">{l.title}</span>
+            </span>
           </button>
         ))}
       </div>
