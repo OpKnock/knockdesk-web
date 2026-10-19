@@ -157,25 +157,42 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-lists ul { list-style: none; border-top: 1px solid var(--kd-border); }
 .kd-lists li { padding: 12px 0; border-bottom: 1px solid var(--kd-border); font-size: 1rem; color: var(--kd-muted); }
 .kd-layers-stack { position: relative; perspective: 1500px; height: 320px; transform-style: preserve-3d; }
-/* Each slip owns a band, so every one keeps a clickable strip of its own;
-   the bands overlap by design, which is what gives the stacked-deck look. */
-.kd-slip { position: absolute; left: 0; right: 0; top: calc(var(--i) * 62px); height: 74px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; padding: 12px 22px; text-align: left; cursor: pointer; overflow: hidden; border: 2px solid var(--kd-ink); background: var(--kd-plane); border-radius: 6px; box-shadow: 0 18px 34px -22px rgba(0, 0, 0, 0.5); transform: translate3d(calc(var(--i) * 12px), 0, calc(var(--i) * -40px)) rotate(calc(var(--i) * -0.7deg)); transform-origin: 0 100%; transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s, border-color 0.2s, background 0.2s; }
-.kd-slip:hover { border-color: var(--kd-acc); }
-.kd-slip[data-active="true"] { transform: translate3d(calc(var(--i) * 18px), -14px, 34px) rotate(calc(var(--i) * -0.4deg)) scale(1.015); box-shadow: 0 30px 52px -24px rgba(0, 0, 0, 0.6); z-index: 6; }
+/* Deck of slips: each card's upper zone is pure cover space, so the slip
+   above can overlap it deeply without ever hiding readable content. */
+.kd-layers-stack { position: relative; perspective: 1500px; height: 348px; transform-style: preserve-3d; }
+.kd-slip { position: absolute; left: 0; right: 0; top: calc(var(--i) * 76px); height: 116px; display: flex; align-items: flex-end; padding: 0 24px 20px; text-align: left; cursor: pointer; overflow: hidden; border: 2px solid var(--kd-ink); background: var(--kd-plane); border-radius: 8px; box-shadow: 0 20px 36px -22px rgba(0, 0, 0, 0.5); transform: translate3d(calc(var(--i) * 10px), 0, calc(var(--i) * -34px)); transform-origin: 0 100%; opacity: 0.78; transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s, border-color 0.2s, background 0.2s, opacity 0.25s; }
+.kd-slip:hover { opacity: 0.95; }
+.kd-slip[data-active="true"] { opacity: 1; transform: translate3d(calc(var(--i) * 16px), -12px, 40px); box-shadow: 0 34px 56px -26px rgba(0, 0, 0, 0.62); z-index: 6; }
+.kd-slip[data-out="true"] { border-color: var(--kd-acc); }
+.kd-slip[data-out="true"][data-active="true"] { background: var(--kd-acc); color: var(--kd-on-acc); }
+.kd-slip-body { display: flex; flex-direction: column; gap: 6px; }
+.kd-slip-tag { font: 600 0.6875rem var(--kd-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--kd-faint); }
+.kd-slip[data-active="true"] .kd-slip-tag { color: inherit; opacity: 0.85; }
+.kd-slip-title { font: 600 1.375rem var(--kd-display); color: var(--kd-ink); letter-spacing: -0.01em; }
+.kd-slip[data-active="true"][data-out="true"] .kd-slip-title { color: var(--kd-on-acc); }
 .kd-slip[data-out="true"] { border-color: var(--kd-acc); }
 .kd-slip[data-out="true"][data-active="true"] { background: var(--kd-acc); color: var(--kd-on-acc); }
 .kd-slip-tag { font: 600 0.6875rem var(--kd-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--kd-faint); }
-.kd-slip[data-active="true"] .kd-slip-tag { color: inherit; opacity: 0.8; }
+.kd-slip[data-active="true"] .kd-slip-tag { color: inherit; opacity: 0.85; }
 .kd-slip-title { font: 600 1.375rem var(--kd-display); color: var(--kd-ink); letter-spacing: -0.01em; }
 .kd-slip[data-active="true"][data-out="true"] .kd-slip-title { color: var(--kd-on-acc); }
+.kd-layers-info { border-top: 2px solid var(--kd-ink); padding-top: 20px; min-height: 168px; }
 .kd-layers-info { border-top: 2px solid var(--kd-ink); padding-top: 20px; min-height: 168px; }
 .kd-layers-blurb { font-size: 1.125rem; color: var(--kd-ink); font-weight: 500; margin-bottom: 12px; }
 .kd-layers-info ul { list-style: none; }
 .kd-layers-info li { padding: 8px 0 8px 22px; position: relative; font-size: 0.9375rem; color: var(--kd-muted); }
 .kd-layers-info li::before { content: ""; position: absolute; left: 0; top: 18px; width: 10px; height: 2px; background: var(--kd-acc); }
 .kd-layers-hint { margin-top: 14px; font-size: 0.8125rem; color: var(--kd-faint); }
-.kd-layers-info { animation: kd-fade 0.32s ease; }
 @keyframes kd-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* GitHub access point, used in page headers */
+.kd-source { display: inline-flex; align-items: center; gap: 10px; font-size: 0.9375rem; font-weight: 600; color: var(--kd-muted); text-decoration: none; padding: 12px 4px; white-space: nowrap; }
+.kd-source:hover { color: var(--kd-acc); }
+.kd-source svg { width: 20px; height: 20px; flex-shrink: 0; }
+/* Utility row: breadcrumbs on the left, GitHub on the right */
+.kd-page-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 40px; }
+.kd-page-top .kd-crumbs { margin-bottom: 0; }
+.kd-page-top .kd-crumbs ol { margin-bottom: 0; }
 
 /* Steps */
 .kd-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; perspective: 1200px; }
