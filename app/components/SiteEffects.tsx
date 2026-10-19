@@ -321,6 +321,38 @@ export function SiteEffects() {
     };
   }, [path]);
 
+  // Anchor navigation across routes.
+  //
+  // The browser resolves a #fragment against the layout as it exists at the
+  // moment it handles the navigation. On a statically prerendered site the
+  // target section has not laid out yet at that point, the variable fonts
+  // have not loaded, and the scroll-reveal system has not run, so the offset
+  // the browser computes is wrong and the page lands at the top instead of on
+  // the section. Re-resolve the target once the page has settled.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash || hash === "#") return;
+    let cancelled = false;
+
+    const scrollToHash = () => {
+      if (cancelled) return;
+      const target = document.querySelector(hash);
+      if (!target) return;
+      target.scrollIntoView({ block: "start", behavior: "auto" });
+    };
+
+    scrollToHash();
+    const soon = window.setTimeout(scrollToHash, 80);
+    const later = window.setTimeout(scrollToHash, 400);
+    document.fonts?.ready.then(scrollToHash).catch(() => {});
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(soon);
+      window.clearTimeout(later);
+    };
+  }, [path]);
+
   // Cursor atmosphere: a soft backdrop that follows the pointer, and a ring
   // that snaps to whatever interactive thing is under it. Both are decorative
   // and pointer-transparent, and both stand down for touch and reduced motion.

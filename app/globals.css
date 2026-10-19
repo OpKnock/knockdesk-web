@@ -3,7 +3,7 @@
   --kd-bg: #ffffff; --kd-soft: #f5f4f1; --kd-surface: #ffffff; --kd-surface2: #f5f4f1;
   --kd-text: #0b0b0c; --kd-muted: #3d3d44; --kd-faint: #55555d; --kd-border: #dcdad4;
   --kd-nav-bg: rgba(255, 255, 255, 0.94); --kd-field: #8d8b84; --kd-ph: #6b6b73;
-  --kd-obj-a: #0b0b0c; --kd-obj-b: #2a2a2e; --kd-plane: rgba(255, 255, 255, 0.94);
+  --kd-obj-a: #0b0b0c; --kd-obj-b: #2a2a2e; --kd-plane: #ffffff; --kd-plane-edge: rgba(11, 11, 12, 0.14);
   --kd-cta-bg: #0b0b0c; --kd-cta-fg: #ffffff; --kd-cta-sub: #d4d4d8;
   --kd-ok-bg: #eef8f1; --kd-ok: #0f4a26; --kd-ok-line: #1d6b3a; --kd-bad-bg: #fdf0ee; --kd-bad: #8c1d18; --kd-bad-line: #b3261e;
   --kd-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
@@ -15,7 +15,7 @@
   --kd-bg: #0c0c0e; --kd-soft: #151518; --kd-surface: #151518; --kd-surface2: #151518;
   --kd-text: #f4f4f5; --kd-muted: #c4c4cc; --kd-faint: #a1a1aa; --kd-border: #2b2b30;
   --kd-nav-bg: rgba(12, 12, 14, 0.92); --kd-field: #6b6b73; --kd-ph: #8a8a93;
-  --kd-obj-a: #f4f4f5; --kd-obj-b: #a9a9b2; --kd-plane: rgba(12, 12, 14, 0.92);
+  --kd-obj-a: #f4f4f5; --kd-obj-b: #a9a9b2; --kd-plane: #1f1f24; --kd-plane-edge: rgba(255, 255, 255, 0.14);
   --kd-cta-bg: #151518; --kd-cta-fg: #f4f4f5; --kd-cta-sub: #c4c4cc;
   --kd-ok-bg: #0f2a1b; --kd-ok: #9be3b4; --kd-ok-line: #2f8f57; --kd-bad-bg: #2d1311; --kd-bad: #ffb4ab; --kd-bad-line: #d4574d;
   color-scheme: dark;
@@ -27,6 +27,13 @@ html { scroll-behavior: smooth; scroll-padding-top: 88px; -webkit-font-smoothing
    The layer deck and nav both depend on sticky. `clip` contains the overflow
    without creating a scroll box. */
 body { background: var(--kd-bg); color: var(--kd-text); font-family: var(--kd-body); line-height: 1.65; overflow-x: clip; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* The scrollbar is hidden so scrolling reads as natural movement rather than a
+   track sliding along the edge. Scrolling itself is untouched: the wheel,
+   touch, space bar, page up/down and home/end keys all still work, and the
+   top progress bar plus the back-to-top button show where you are. */
+html { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 main { flex: 1; }
 a { color: inherit; }
 :focus-visible { outline: 3px solid var(--kd-acc); outline-offset: 3px; }
@@ -73,6 +80,12 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-nav-links a { font-size: 0.9375rem; font-weight: 500; color: var(--kd-ink); text-decoration: none; padding: 12px 0; border-bottom: 2px solid transparent; }
 .kd-nav-links a:hover, .kd-nav-links a[aria-current="page"] { border-bottom-color: var(--kd-acc); }
 .kd-nav-cta { padding: 10px 24px; min-height: 48px; }
+/* Source button: sits next to the Download CTA, outlined so the primary
+   action keeps the emphasis. */
+.kd-btn-github { padding: 0 18px; min-height: 48px; background: transparent; color: var(--kd-ink); border-color: var(--kd-border); }
+.kd-btn-github:hover { border-color: var(--kd-ink); background: var(--kd-soft); }
+.kd-btn-github svg { width: 20px; height: 20px; flex-shrink: 0; }
+.kd-btn-github-label { font-weight: 600; }
 .kd-menu-btn { display: none; background: none; border: 1px solid var(--kd-border); border-radius: 4px; width: 48px; height: 48px; align-items: center; justify-content: center; cursor: pointer; color: var(--kd-ink); }
 .kd-mobile-menu { border-top: 1px solid var(--kd-border); padding: 8px var(--kd-pad) 24px; background: var(--kd-bg); }
 .kd-mobile-menu ul { list-style: none; }
@@ -164,9 +177,16 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-lists ul { list-style: none; border-top: 1px solid var(--kd-border); }
 .kd-lists li { padding: 12px 0; border-bottom: 1px solid var(--kd-border); font-size: 1rem; color: var(--kd-muted); }
 .kd-layers-stack { position: relative; perspective: 1500px; height: 444px; transform-style: preserve-3d; isolation: isolate; }
-.kd-slip { position: absolute; left: 0; right: calc(var(--i) * 6px); top: calc(var(--i) * 108px); z-index: calc(var(--i) + 1); min-width: 0; height: 120px; display: flex; align-items: flex-end; padding: 0 24px 18px; text-align: left; cursor: pointer; overflow: hidden; border: 1.5px solid var(--kd-ink); background: var(--kd-plane); border-radius: 10px; box-shadow: 0 20px 36px -22px rgba(0, 0, 0, 0.5); transform: translate3d(calc(var(--i) * 6px), 0, calc(var(--i) * -8px)); transform-origin: 50% 100%; opacity: 0.9; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.25s ease, background-color 0.25s ease, opacity 0.25s ease; }
+/* The deck: each slip is an opaque card lifted above the section background,
+   so the stack reads as a pile of cards rather than a set of outlines. The
+   translucent fill this used to have made the slips disappear into the dark
+   theme, leaving nothing but their borders. */
+.kd-slip { position: absolute; left: 0; right: calc(var(--i) * 6px); top: calc(var(--i) * 108px); z-index: calc(var(--i) + 1); min-width: 0; height: 120px; display: flex; align-items: flex-end; padding: 0 24px 18px; text-align: left; cursor: pointer; overflow: hidden; border: 1.5px solid var(--kd-ink); background: var(--kd-plane); border-radius: 10px; box-shadow: 0 1px 2px var(--kd-plane-edge), 0 14px 28px -18px rgba(0, 0, 0, 0.55); transform: translate3d(calc(var(--i) * 6px), 0, calc(var(--i) * -8px)); transform-origin: 50% 100%; opacity: 0.92; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.25s ease, background-color 0.25s ease, opacity 0.25s ease; }
+/* A light along the top edge makes each covered card read as a card edge
+   instead of a flat outline. */
+.kd-slip::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--kd-plane-edge) 22%, var(--kd-plane-edge) 78%, transparent); pointer-events: none; }
 .kd-slip:hover { opacity: 1; }
-.kd-slip[data-active="true"] { opacity: 1; transform: translate3d(calc(var(--i) * 6px), 0, 36px); z-index: 12; box-shadow: 0 30px 58px -30px rgba(0, 0, 0, 0.58); }
+.kd-slip[data-active="true"] { opacity: 1; transform: translate3d(calc(var(--i) * 6px), 0, 36px); z-index: 12; box-shadow: 0 1px 2px var(--kd-plane-edge), 0 26px 50px -26px rgba(0, 0, 0, 0.6); }
 .kd-slip:focus-visible { z-index: 14; }
 .kd-slip[data-out="true"] { border-color: var(--kd-acc); }
 .kd-slip[data-out="true"][data-active="true"] { background: var(--kd-acc); color: var(--kd-on-acc); }
@@ -334,6 +354,8 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 @media (max-width: 820px) {
   .kd-nav-links { display: none; }
   .kd-menu-btn { display: inline-flex; }
+  .kd-btn-github-label { display: none; }
+  .kd-btn-github { padding: 0; width: 48px; }
 }
 @media (max-width: 640px) {
   :root { --kd-pad: 20px; }

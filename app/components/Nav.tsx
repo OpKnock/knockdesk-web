@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Mark } from "./Mark";
 import { ThemeToggle } from "./ThemeToggle";
+import { GithubMark } from "./GithubMark";
+import { GITHUB } from "../lib/site";
 
 const links = [
   { href: "/#features", label: "Features" },
@@ -87,6 +89,16 @@ export function Nav() {
         </nav>
         <div className="kd-nav-tools">
           <ThemeToggle />
+          <a
+            className="kd-btn kd-btn-github"
+            href={GITHUB}
+            rel="noopener noreferrer"
+            aria-label="View the KnockDesk source on GitHub"
+            title="View source on GitHub"
+          >
+            <GithubMark size={20} />
+            <span className="kd-btn-github-label">Source</span>
+          </a>
           <Link href="/download" className="kd-btn kd-btn-primary kd-nav-cta">
             Download
           </Link>

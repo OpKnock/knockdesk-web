@@ -1,6 +1,6 @@
 import { chromium } from 'playwright-core';
 
-const OUT = 'test/shots';
+const OUT = 'test/shots/';
 const base = 'http://127.0.0.1:3005';
 
 (async () => {

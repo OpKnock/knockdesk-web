@@ -22,10 +22,12 @@ be deployed to Vercel, Netlify, Cloudflare Pages, or any static host.
     npm run lint           # ESLint (next/core-web-vitals + next/typescript)
     npm run test:verify    # CSP, reveals, hydration, console errors
     npm run test:a11y      # axe-core, WCAG A/AA, light + dark + mobile
+    npm run test:nav       # nav Source button, anchor links, scrollbar
     npm run test:motion    # scroll reveals, parallax, count-up, reduced motion
     npm run test:interactions  # cursor, nav, layer deck, keyboard
+    npm run test:links     # every internal and external link on the site
     npm run audit:prod     # dependency audit, production dependencies only
-    npm test               # lint + verify + a11y
+    npm test               # lint + verify + a11y + nav
 
 The test scripts drive a real Chrome through `playwright-core` and expect a
 server already listening on port 3005 (`npm run build && npm start`).
