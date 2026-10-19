@@ -186,20 +186,29 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-flow-boundary { position: relative; margin: 20px 0 18px; border-top: 1px dashed var(--kd-border); }
 .kd-flow-boundary span { position: absolute; left: 0; top: -9px; padding-right: 12px; background: var(--kd-soft); font: 600 0.6875rem/1 var(--kd-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--kd-faint); }
 
-.kd-flow-row { display: grid; grid-template-columns: 44px 1fr 20px; gap: 16px; align-items: center; width: 100%; text-align: left; padding: 15px 18px 15px 10px; background: var(--kd-plane); border: 1.5px solid var(--kd-border); border-radius: 10px; cursor: pointer; transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease; }
+/* The row is a fixed height on purpose. If opening a layer resized it, the
+   focus ring drawn around it would be laid out against the old box and end up
+   clipped across the card.
+
+   position and z-index are there for paint order: the connector line is an
+   absolutely positioned pseudo element, and without a stacking context on the
+   row it paints over the button, cutting the focus ring where it crosses. */
+.kd-flow-row { position: relative; z-index: 1; display: grid; grid-template-columns: 44px 1fr 20px; gap: 16px; align-items: center; width: 100%; min-height: 76px; text-align: left; padding: 15px 18px 15px 10px; background: var(--kd-plane); border: 1.5px solid var(--kd-border); border-radius: 10px; cursor: pointer; transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease; }
 .kd-flow-row:hover { border-color: var(--kd-faint); }
 .kd-flow-row.is-active { border-color: var(--kd-ink); box-shadow: 0 1px 2px var(--kd-plane-edge), 0 14px 30px -20px rgba(0, 0, 0, 0.5); }
 .kd-flow-idx { width: 30px; height: 30px; justify-self: center; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1.5px solid var(--kd-border); background: var(--kd-bg); color: var(--kd-faint); font: 600 0.75rem var(--kd-body); font-variant-numeric: tabular-nums; transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
 .kd-flow-row.is-active .kd-flow-idx { background: var(--kd-ink); border-color: var(--kd-ink); color: var(--kd-on-ink); }
 .kd-flow-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.kd-flow-title { font: 600 1.125rem/1.25 var(--kd-display); color: var(--kd-ink); letter-spacing: -0.01em; }
+.kd-flow-title { font: 600 1.125rem/1.25 var(--kd-display); color: var(--kd-ink); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kd-flow-tag { font: 600 0.6875rem/1.25 var(--kd-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--kd-faint); }
 .kd-flow-row-out .kd-flow-tag { color: var(--kd-acc); }
 .kd-flow-row-out .kd-flow-idx { border-color: var(--kd-acc); color: var(--kd-acc); }
 .kd-flow-row-out.is-active { border-color: var(--kd-acc); background: color-mix(in srgb, var(--kd-acc) 7%, var(--kd-plane)); }
 .kd-flow-row-out.is-active .kd-flow-idx { background: var(--kd-acc); border-color: var(--kd-acc); color: var(--kd-on-acc); }
-/* The files each layer is made of. Shown only on the open layer. */
-.kd-flow-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+/* The files each layer is made of. */
+.kd-flow-files-wrap { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--kd-border); }
+.kd-flow-files-label { font: 600 0.6875rem/1 var(--kd-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--kd-faint); margin-bottom: 10px; }
+.kd-flow-files { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
 .kd-flow-file { font: 500 0.75rem/1.4 ui-monospace, Menlo, Consolas, monospace; color: var(--kd-muted); background: var(--kd-soft); border: 1px solid var(--kd-border); border-radius: 4px; padding: 3px 8px; }
 /* Chevron: points right when closed, down when the layer is open. */
 .kd-flow-mark { position: relative; width: 20px; height: 20px; color: var(--kd-faint); transition: color 0.25s ease; }
@@ -207,7 +216,9 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-flow-row.is-active .kd-flow-mark { color: var(--kd-acc); }
 .kd-flow-row.is-active .kd-flow-mark::before { transform: rotate(45deg); }
 
-.kd-flow-detail { margin-top: 26px; border-top: 2px solid var(--kd-ink); padding-top: 20px; min-height: 150px; }
+/* Sized so switching layers never moves the page: the panel holds the blurb,
+   the three points and the file list, and the tallest layer sets the height. */
+.kd-flow-detail { margin-top: 26px; border-top: 2px solid var(--kd-ink); padding-top: 20px; min-height: 268px; }
 .kd-flow-detail-inner { animation: kd-flow-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes kd-flow-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .kd-flow-blurb { font-size: 1.125rem; color: var(--kd-ink); font-weight: 500; margin-bottom: 14px; max-width: 46ch; }

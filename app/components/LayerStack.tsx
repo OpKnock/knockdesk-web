@@ -109,15 +109,6 @@ export function LayerStack() {
                 <span className="kd-flow-body">
                   <span className="kd-flow-title">{l.title}</span>
                   <span className="kd-flow-tag">{l.tag}</span>
-                  {isActive && (
-                    <span className="kd-flow-files">
-                      {l.files.map((f) => (
-                        <span key={f} className="kd-flow-file">
-                          {f}
-                        </span>
-                      ))}
-                    </span>
-                  )}
                 </span>
                 <span className="kd-flow-mark" aria-hidden="true" />
               </button>
@@ -135,6 +126,21 @@ export function LayerStack() {
               <li key={p}>{p}</li>
             ))}
           </ul>
+          {/* The files this layer is made of. They live in the panel rather than
+              in the row, so opening a layer does not change the row's height.
+              A row that resizes while it holds focus also resizes the focus
+              ring around it, which is how the ring ends up drawn against the
+              wrong box. */}
+          <div className="kd-flow-files-wrap">
+            <p className="kd-flow-files-label">Files</p>
+            <ul className="kd-flow-files">
+              {layer.files.map((f) => (
+                <li key={f} className="kd-flow-file">
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
       <p className="kd-flow-hint">Select a layer to see what it holds.</p>

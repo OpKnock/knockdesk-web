@@ -96,6 +96,35 @@ const base = 'http://127.0.0.1:3005';
     Array.from(document.querySelectorAll('.kd-flow-row')).findIndex((e) => e.classList.contains('is-active')));
   check('layers work from the keyboard', kb === 2, 'active=' + kb);
 
+  // Opening a layer must not resize its row. When it did, the focus ring was
+  // laid out against the old box and drew across the middle of the card.
+  const stable = await page.evaluate(async () => {
+    const row = document.querySelectorAll('.kd-flow-row')[1];
+    row.focus();
+    const before = Math.round(row.getBoundingClientRect().height);
+    row.click();
+    await new Promise((r) => setTimeout(r, 500));
+    const after = Math.round(row.getBoundingClientRect().height);
+    const detailBefore = Math.round(document.querySelector('.kd-flow-detail').getBoundingClientRect().height);
+    return { before, after, detailBefore, outline: getComputedStyle(row).outlineStyle };
+  });
+  check('opening a layer does not resize the row', stable.before === stable.after,
+    `height ${stable.before} -> ${stable.after}`);
+
+  // Switching layers must not move the page either.
+  const pageStable = await page.evaluate(async () => {
+    const detail = document.querySelector('.kd-flow-detail');
+    const heights = [];
+    for (let i = 0; i < 4; i++) {
+      document.querySelectorAll('.kd-flow-row')[i].click();
+      await new Promise((r) => setTimeout(r, 500));
+      heights.push(Math.round(detail.getBoundingClientRect().height));
+    }
+    return heights;
+  });
+  check('the detail panel keeps a constant height across layers',
+    new Set(pageStable).size === 1, 'heights=' + JSON.stringify(pageStable));
+
   // --- orb is gone, no API-costs text anywhere ---------------------------
   const body = await page.content();
   check('orb visual removed', !body.includes('kd-avatar'));
