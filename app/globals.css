@@ -275,6 +275,12 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-faq-heading { margin: 0; }
 .kd-faq-q { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: 100%; min-height: 64px; padding: 24px 0; background: none; border: 0; text-align: left; font: 600 1.25rem var(--kd-display); color: var(--kd-ink); cursor: pointer; }
 .kd-faq-q:hover { color: var(--kd-acc); }
+/* The focus indicator for a question is an underline, not a rectangle. The
+   global 3px outline drew a bright orange box around every question that was
+   clicked or tabbed to, which read as an error rather than as focus. The
+   underline is in the ink colour so it stays distinct from the orange
+   hover text. */
+.kd-faq-q:focus-visible { outline: none; box-shadow: inset 0 -2px 0 var(--kd-ink); }
 .kd-faq-q-text { min-width: 0; }
 /* The plus mark: two bars, and the vertical one scales away when open. */
 .kd-faq-mark { position: relative; flex-shrink: 0; width: 18px; height: 18px; color: var(--kd-acc); }

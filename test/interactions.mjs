@@ -167,6 +167,22 @@ const base = 'http://127.0.0.1:3005';
   check('the FAQ search filters the questions', filtered > 0 && filtered < faqCount, 'showing ' + filtered + ' of ' + faqCount);
   await page.fill('#faq-search', '');
 
+  // A focused question must not be wrapped in a bright box. The global 3px
+  // outline drew an orange rectangle around the question, which read as an
+  // error rather than as focus.
+  const faqFocus = await page.evaluate(() => {
+    const b = document.querySelectorAll('.kd-faq-q')[2];
+    b.focus();
+    const cs = getComputedStyle(b);
+    return {
+      focusVisible: b.matches(':focus-visible'),
+      outline: cs.outlineStyle,
+      shadow: cs.boxShadow,
+    };
+  });
+  check('a focused question uses an underline, not a box',
+    faqFocus.outline === 'none' && /inset/.test(faqFocus.shadow), JSON.stringify(faqFocus));
+
   // --- the outlined button must not flash white on hover -----------------
   // In the dark theme the hover fill used to invert to near-white, which read
   // as a broken button.
