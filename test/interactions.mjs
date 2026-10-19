@@ -167,6 +167,63 @@ const base = 'http://127.0.0.1:3005';
   check('the FAQ search filters the questions', filtered > 0 && filtered < faqCount, 'showing ' + filtered + ' of ' + faqCount);
   await page.fill('#faq-search', '');
 
+  // --- the outlined button must not flash white on hover -----------------
+  // In the dark theme the hover fill used to invert to near-white, which read
+  // as a broken button.
+  const darkCtx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
+  const darkPage = await darkCtx.newPage();
+  await darkPage.goto(base + '/download', { waitUntil: 'networkidle' });
+  await darkPage.waitForTimeout(400);
+  const sec = darkPage.locator('.kd-build-actions button').first();
+  await sec.scrollIntoViewIfNeeded();
+  await sec.hover();
+  await darkPage.waitForTimeout(350);
+  const secColors = await sec.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { bg: cs.backgroundColor, color: cs.color };
+  });
+  const lum = (rgb) => {
+    const m = rgb.match(/\d+/g).map(Number);
+    return 0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2];
+  };
+  const bgLum = lum(secColors.bg);
+  const fgLum = lum(secColors.color);
+  check('the outlined button does not flash white on hover in the dark theme',
+    bgLum < 120 || fgLum > 200, JSON.stringify(secColors));
+  await darkCtx.close();
+
+  // --- the caret must fade, not switch on and off ------------------------
+  const lightCtx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
+  const lightPage = await lightCtx.newPage();
+  await lightPage.goto(base + '/', { waitUntil: 'networkidle' });
+  await lightPage.waitForTimeout(500);
+  const caret = await lightPage.evaluate(() => {
+    const c = document.querySelector('.kd-panel-caret');
+    if (!c) return null;
+    const cs = getComputedStyle(c);
+    return { name: cs.animationName, timing: cs.animationTimingFunction };
+  });
+  check('the typing caret fades instead of blinking hard',
+    !!caret && !/steps/.test(caret.timing), JSON.stringify(caret));
+
+  // A duplicated @keyframes block silently overrides the earlier one, which
+  // is how the hard blink came back after being fixed.
+  const dupes = await lightPage.evaluate(() => {
+    const names = new Map();
+    for (const sheet of document.styleSheets) {
+      let rules;
+      try { rules = sheet.cssRules; } catch { continue; }
+      for (const rule of rules) {
+        if (rule.type === CSSRule.KEYFRAMES_RULE) {
+          names.set(rule.name, (names.get(rule.name) || 0) + 1);
+        }
+      }
+    }
+    return [...names].filter(([, n]) => n > 1).map(([name, n]) => `${name} x${n}`);
+  });
+  check('no keyframes are defined twice', dupes.length === 0, dupes.join(', '));
+  await lightCtx.close();
+
   // --- orb is gone, no API-costs text anywhere ---------------------------
   const body = await page.content();
   check('orb visual removed', !body.includes('kd-avatar'));

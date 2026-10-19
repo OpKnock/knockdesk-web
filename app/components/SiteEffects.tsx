@@ -383,7 +383,7 @@ export function SiteEffects() {
     let hovering: Element | null = null;
     let tiltCard: HTMLElement | null = null;
 
-    const interactive = 'a, button, summary, input, [role="button"], .kd-slip';
+    const interactive = 'a, button, summary, input, [role="button"], .kd-flow-row';
     const tiltable = '.kd-feature, .kd-card, .kd-build, .kd-step';
 
     const onMove = (e: PointerEvent) => {
@@ -399,6 +399,9 @@ export function SiteEffects() {
           r.style.setProperty("--ry", `${b.top + b.height / 2}px`);
           r.style.setProperty("--rw", `${b.width + 14}px`);
           r.style.setProperty("--rh", `${b.height + 14}px`);
+          // Take the target's own corner radius so the ring follows its shape.
+          const radius = getComputedStyle(hit).borderTopLeftRadius;
+          r.style.setProperty("--rr", radius && radius !== "0px" ? radius : "6px");
           r.dataset.on = "true";
         } else {
           delete r.dataset.on;

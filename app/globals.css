@@ -8,6 +8,10 @@
   --kd-ok-bg: #eef8f1; --kd-ok: #0f4a26; --kd-ok-line: #1d6b3a; --kd-bad-bg: #fdf0ee; --kd-bad: #8c1d18; --kd-bad-line: #b3261e;
   --kd-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --kd-body: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Hover fill for the outlined button. In the light theme it inverts to
+     solid black, which reads well. In the dark theme a solid near-white fill
+     flashes hard against the dark page, so it gets a soft fill instead. */
+  --kd-sec-hover-bg: #0b0b0c; --kd-sec-hover-fg: #ffffff;
   --kd-pad: 24px; color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -18,6 +22,7 @@
   --kd-obj-a: #f4f4f5; --kd-obj-b: #a9a9b2; --kd-plane: #1f1f24; --kd-plane-edge: rgba(255, 255, 255, 0.14);
   --kd-cta-bg: #151518; --kd-cta-fg: #f4f4f5; --kd-cta-sub: #c4c4cc;
   --kd-ok-bg: #0f2a1b; --kd-ok: #9be3b4; --kd-ok-line: #2f8f57; --kd-bad-bg: #2d1311; --kd-bad: #ffb4ab; --kd-bad-line: #d4574d;
+  --kd-sec-hover-bg: #2a2a30; --kd-sec-hover-fg: #f4f4f5;
   color-scheme: dark;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -60,7 +65,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-btn-primary { background: var(--kd-acc); color: var(--kd-on-acc); }
 .kd-btn-primary:hover { background: var(--kd-acc-hover); }
 .kd-btn-secondary { background: transparent; color: var(--kd-ink); border-color: var(--kd-ink); }
-.kd-btn-secondary:hover { background: var(--kd-ink); color: var(--kd-on-ink); }
+.kd-btn-secondary:hover { background: var(--kd-sec-hover-bg); color: var(--kd-sec-hover-fg); }
 /* Ghost sits on the dark CTA panel, so it inherits the current colour instead
    of hard-coding white, which keeps it correct if the panel theme changes. */
 .kd-btn-ghost { background: transparent; color: inherit; border-color: currentColor; }
@@ -100,10 +105,14 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-hero-actions { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
 .kd-hero-note { margin-top: 24px; font-size: 0.9375rem; color: var(--kd-faint); }
 
-/* Cursor atmosphere */
-.kd-cursor-glow, .kd-cursor-ring { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 250; opacity: 0; transition: opacity 0.25s; }
-.kd-cursor-glow { width: 420px; height: 420px; margin: -210px 0 0 -210px; background: radial-gradient(circle, color-mix(in srgb, var(--kd-acc) 16%, transparent) 0%, transparent 62%); transform: translate3d(var(--gx, 50vw), var(--gy, 50vh), 0); will-change: transform; }
-.kd-cursor-ring { width: var(--rw, 40px); height: var(--rh, 40px); margin: calc(var(--rh, 40px) / -2) 0 0 calc(var(--rw, 40px) / -2); border: 2px solid color-mix(in srgb, var(--kd-acc) 55%, transparent); border-radius: 6px; transform: translate3d(var(--rx, 50vw), var(--ry, 50vh), 0); transition: width 0.16s, height 0.16s, margin 0.16s, transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.16s; }
+/* Cursor atmosphere. The ring snaps to the element under the pointer. Its size
+   changes instantly and only its position is animated: animating the size as
+   well meant the ring was caught mid-resize, which read as a large orange
+   box flashing across the page. It also sits below the nav and the notice so
+   it never draws over the page chrome. */
+.kd-cursor-glow, .kd-cursor-ring { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 95; opacity: 0; transition: opacity 0.25s; }
+.kd-cursor-glow { z-index: 94; width: 420px; height: 420px; margin: -210px 0 0 -210px; background: radial-gradient(circle, color-mix(in srgb, var(--kd-acc) 16%, transparent) 0%, transparent 62%); transform: translate3d(var(--gx, 50vw), var(--gy, 50vh), 0); will-change: transform; }
+.kd-cursor-ring { width: var(--rw, 40px); height: var(--rh, 40px); margin: calc(var(--rh, 40px) / -2) 0 0 calc(var(--rw, 40px) / -2); border: 2px solid color-mix(in srgb, var(--kd-acc) 42%, transparent); border-radius: var(--rr, 6px); transform: translate3d(var(--rx, 50vw), var(--ry, 50vh), 0); transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s; }
 .kd-cursor-ring[data-on="true"] { opacity: 1; }
 /* Slips are absolutely stacked; nothing else changes positioning. */
 .kd-magnetic { position: relative; }
@@ -137,7 +146,11 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-panel-thread p { max-width: none; font-size: 0.9375rem; }
 .kd-panel-thread .you { color: var(--kd-faint); align-self: flex-start; background: var(--kd-soft); border: 1px solid var(--kd-border); border-radius: 8px 8px 8px 2px; padding: 8px 12px; }
 .kd-panel-thread .kd { color: var(--kd-ink); align-self: flex-end; background: var(--kd-bg); border: 1.5px solid var(--kd-ink); border-radius: 8px 8px 2px 8px; padding: 10px 14px; min-height: 44px; font-weight: 500; }
-.kd-panel-caret { display: inline-block; width: 2px; height: 1em; margin-left: 3px; vertical-align: -2px; background: var(--kd-acc); animation: kd-blink 1.1s steps(2) infinite; }
+.kd-panel-caret { display: inline-block; width: 2px; height: 1em; margin-left: 3px; vertical-align: -2px; background: var(--kd-acc); animation: kd-blink 1.6s ease-in-out infinite; }
+/* A soft fade rather than a hard on/off switch. The caret used to blink with
+   steps(2), which reads as a flicker across the top of the page when the
+   site opens. */
+@keyframes kd-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
 .kd-panel-meter { display: flex; align-items: flex-end; gap: 4px; height: 26px; margin-top: auto; }
 .kd-panel-meter i { flex: 1; background: var(--kd-border); border-radius: 2px; height: 20%; animation: kd-bars 1.4s ease-in-out infinite; animation-delay: calc(var(--n) * 90ms); }
 .kd-panel-meter i:nth-child(odd) { background: color-mix(in srgb, var(--kd-acc) 60%, var(--kd-border)); }
@@ -147,8 +160,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-panel-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--kd-faint); }
 .kd-panel-dot[data-s="indexing"] { background: var(--kd-acc); animation: kd-pulse 1.6s ease-in-out infinite; }
 .kd-panel-caption { margin-top: 16px; font-size: 0.8125rem; color: var(--kd-faint); text-align: center; }
-@keyframes kd-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-@keyframes kd-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes kd-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 @keyframes kd-bars { 0%, 100% { height: 18%; } 50% { height: 100%; } }
 
 .kd-proof { border-top: 1px solid var(--kd-border); border-bottom: 1px solid var(--kd-border); background: var(--kd-soft); }
