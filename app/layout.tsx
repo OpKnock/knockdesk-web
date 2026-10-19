@@ -7,6 +7,7 @@ import { Footer } from "./components/Footer";
 import { MarkSprite } from "./components/Mark";
 import { SiteEffects } from "./components/SiteEffects";
 import { Analytics } from "./components/Analytics";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { SITE_URL, EMAIL, GITHUB } from "./lib/site";
 
 const DESC = "KnockDesk is a local-first desktop AI assistant with voice, persona, memory, skills and resident agents. Your files stay on your PC and you choose the AI provider.";
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <SiteEffects />
         <Analytics />
+        <VercelAnalytics />
       </body>
     </html>
   );
