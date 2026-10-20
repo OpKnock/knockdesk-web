@@ -8,7 +8,7 @@ const eslintConfig = defineConfig([
   {
     // The files under test/ run directly on Node as CommonJS scripts and are
     // not part of the app bundle, so module-style imports do not apply to them.
-    files: ["test/**/*.js"],
+    files: ["test/**/*.js", "test/**/*.mjs", "tools/**/*.cjs"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
     },

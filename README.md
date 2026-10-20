@@ -70,6 +70,19 @@ light mode, dark mode and at mobile width. Scroll reveals are disabled under
 `prefers-reduced-motion`, and every animated element has a visible static
 state. The layer deck is operable from the keyboard.
 
+## App captures
+
+The hero and the "Inside the app" section use real captures of the app, kept in `public/shots/`:
+
+- `app-cyan` / `app-emerald` / `app-cyberpunk` / `app-crimson.webp` — the command center in four themes. The hero (`app/components/AppShowcase.tsx`) cross-fades between them every 2.6s and pauses on hover, when the tab is hidden, when it scrolls out of view, and under `prefers-reduced-motion`.
+- `agent-town.webp`, `voice-assistant.webp`, `world-monitor.webp` — the three feature blocks (`app/components/AppFeatures.tsx`). Each keeps its native ratio, so nothing is cropped or stretched.
+
+To refresh them from new screenshots, drop the PNGs into `C:\Users\wagde\OneDrive\Pictures\Screenshots` and run:
+
+    node tools/prep-shots.cjs
+
+It converts them to WebP and writes them into `public/shots/`.
+
 ## Before launch
 
 1. Set `NEXT_PUBLIC_SITE_URL` to the real domain.

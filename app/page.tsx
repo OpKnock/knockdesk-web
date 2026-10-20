@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { AppFeatures } from "./components/AppFeatures";
+import { AppShowcase } from "./components/AppShowcase";
 import { FaqSection } from "./components/FaqSection";
-import { HeroPanel } from "./components/HeroPanel";
-import { Icon, type IconName } from "./components/Icon";
-import { LayerStack } from "./components/LayerStack";
-import { VERSION } from "./lib/site";
+import { Icon } from "./components/Icon";
+import { LayerFlow } from "./components/LayerFlow";
+import type { IconName } from "./components/Icon";
 
 type Feature = { icon: IconName; title: string; desc: string };
 
@@ -32,18 +33,10 @@ const faqs = [
   { q: "Can it control my computer?", a: "Yes, and only with your say-so. Computer control is off until you turn it on in Settings, shows you what it is doing through an overlay, and stops when you switch it off." },
 ];
 
-const stays = ["Persona and memory files, as plain files you can open", "Custom skills and the file vault", "Chats, contacts, notes, tasks, and settings", "API keys, protected by your Windows account"];
-const leaves = ["Prompts and speech you send to the providers you enable", "News, map, messaging, and remote features, only when you turn them on"];
-
 const safety: Feature[] = [
   { icon: "mic", title: "The microphone is yours", desc: "Microphone capture starts when you turn it on and stops when you turn it off. Speech is transcribed by the provider you configured, not by us." },
   { icon: "screen", title: "Control needs consent", desc: "Computer control is off by default. It starts only after you approve it, shows an overlay while it works, and stops on a keypress." },
   { icon: "key", title: "Keys stay local", desc: "API keys are stored on your machine with your Windows account's protection and are redacted from logs and screenshots." },
-];
-
-const more = [
-  { t: "World Monitor", d: "An interactive map and news-monitoring tools that bring location and headlines into your workspace. Feeds depend on the sources configured for your build." },
-  { t: "Command-center themes", d: "Pick a look for your workspace.", chips: ["Ember", "Cyberpunk", "Midnight", "Mono", "Rosé", "Nous Blue", "Classic teal"] },
 ];
 
 export default function Home() {
@@ -58,27 +51,30 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
       <section className="kd-hero">
+        <div className="kd-glow kd-hero-glow" data-parallax="10" aria-hidden="true" />
         <div className="kd-container kd-hero-grid">
           <div data-hero-copy>
-            <p className="kd-eyebrow">Local first. Private. Yours.</p>
-            <h1>A personal AI assistant that lives on your PC.</h1>
-            <p className="kd-sub">
+            <p className="kd-eyebrow" data-reveal data-hero>Your personal AI command center.</p>
+            <h1 data-reveal="split" data-hero>A personal AI assistant that lives on your PC.</h1>
+            <p className="kd-sub" data-reveal data-hero>
               KnockDesk brings voice, memory, skills, and resident agents into one desktop workspace.
               Your files stay on your computer, and you choose the AI provider.
             </p>
-            <div className="kd-hero-actions">
+            <div className="kd-hero-actions" data-reveal data-hero>
               <Link href="/download" className="kd-btn kd-btn-primary">Get KnockDesk</Link>
               <a href="#features" className="kd-link">See what it does</a>
             </div>
-            <p className="kd-hero-note">Free and open source. You bring your own AI provider key.</p>
+            <p className="kd-hero-note" data-reveal data-hero>Free and open source. You bring your own AI provider key.</p>
           </div>
-          <div data-hero-panel data-parallax>
-            <HeroPanel />
+          <div data-hero-panel>
+            <div data-reveal data-hero="panel">
+              <AppShowcase />
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="kd-proof" data-progress>
+      <div className="kd-proof" data-reveal>
         <div className="kd-container">
           <ul>
             <li><strong>Open source</strong><span>First-party code under Apache-2.0</span></li>
@@ -91,13 +87,13 @@ export default function Home() {
 
       <section className="kd-section" id="features">
         <div className="kd-container">
-          <div className="kd-head" data-reveal>
-            <h2>What KnockDesk does</h2>
-            <p>Voice, persona, memory, skills, and agents in one workspace, with your keys and your files under your control.</p>
+          <div className="kd-head">
+            <h2 data-reveal="split">What KnockDesk does</h2>
+            <p data-reveal>Voice, persona, memory, skills, and agents in one workspace, with your keys and your files under your control.</p>
           </div>
           <div className="kd-grid-3">
-            {features.map((f, i) => (
-              <div key={f.title} className="kd-feature" data-reveal style={{ "--d": `${(i % 3) * 90}ms` } as React.CSSProperties}>
+            {features.map((f) => (
+              <div key={f.title} className="kd-feature" data-reveal="card">
                 <Icon name={f.icon} />
                 <h3>{f.title}</h3>
                 <p>{f.desc}</p>
@@ -109,13 +105,13 @@ export default function Home() {
 
       <section className="kd-section kd-safety">
         <div className="kd-container">
-          <div className="kd-head" data-reveal>
-            <h2>Built to be safe to leave running</h2>
-            <p>Sensitive features are off until you switch them on, and you can see what the app is doing at any moment.</p>
+          <div className="kd-head">
+            <h2 data-reveal="split">Built to be safe to leave running</h2>
+            <p data-reveal>Sensitive features are off until you switch them on, and you can see what the app is doing at any moment.</p>
           </div>
           <div className="kd-grid-3">
-            {safety.map((s, i) => (
-              <div key={s.title} className="kd-feature" data-reveal style={{ "--d": `${(i % 3) * 90}ms` } as React.CSSProperties}>
+            {safety.map((s) => (
+              <div key={s.title} className="kd-feature" data-reveal="card">
                 <Icon name={s.icon} />
                 <h3>{s.title}</h3>
                 <p>{s.desc}</p>
@@ -125,42 +121,28 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="kd-section kd-section-flush">
-        <div className="kd-container kd-two">
-          {more.map((m, i) => (
-            <div key={m.t} className="kd-card" data-reveal style={{ "--d": `${i * 90}ms` } as React.CSSProperties}>
-              <h3>{m.t}</h3>
-              <p>{m.d}</p>
-              {m.chips && <ul className="kd-chips">{m.chips.map((c) => <li key={c}>{c}</li>)}</ul>}
-            </div>
-          ))}
-        </div>
-      </section>
+      <AppFeatures />
 
-      <section className="kd-section kd-safety" id="layers">
-        <div className="kd-container kd-split">
-          <div data-reveal>
-            <h2>Four layers. Only one can leave your PC.</h2>
-            <p>Everything KnockDesk keeps is either a file you can open or a request you chose to send. Pick a layer to see what it holds.</p>
-            <div className="kd-lists">
-              <div>
-                <h3>Stays on your PC</h3>
-                <ul>{stays.map((s) => <li key={s}>{s}</li>)}</ul>
-              </div>
-              <div>
-                <h3>Leaves your PC, only when you enable it</h3>
-                <ul>{leaves.map((s) => <li key={s}>{s}</li>)}</ul>
-              </div>
-            </div>
-            <p className="kd-lists-foot"><Link href="/privacy" className="kd-link">Read the privacy policy</Link></p>
+      <section className="kd-section kd-flow-section" id="layers">
+        <div className="kd-container">
+          <div className="kd-flow-head">
+            <p className="kd-eyebrow" data-reveal>Data flow</p>
+            <h2 data-reveal="split">Four layers. Only one can leave your PC.</h2>
+            <p className="kd-flow-lead" data-reveal>
+              Everything KnockDesk keeps is either a file you can open or a request you chose to send.
+              Pick a layer to see what it holds.
+            </p>
           </div>
-          <LayerStack />
+          <LayerFlow />
+          <p className="kd-flow-foot" data-reveal>
+            <Link href="/privacy" className="kd-link">Read the privacy policy</Link>
+          </p>
         </div>
       </section>
 
       <section className="kd-section">
         <div className="kd-container">
-          <h2 data-reveal style={{ marginBottom: 72 }}>How it works</h2>
+          <h2 data-reveal="split" style={{ marginBottom: 72 }}>How it works</h2>
           <div className="kd-steps" data-story>
             {steps.map((s, i) => (
               <div key={s.n} className="kd-step" data-reveal data-story-step style={{ "--d": `${i * 100}ms` } as React.CSSProperties}>
@@ -177,7 +159,8 @@ export default function Home() {
       <FaqSection faqs={faqs} />
 
       <section className="kd-section kd-cta">
-        <div className="kd-container kd-cta-grid" data-reveal>
+        <div className="kd-glow kd-cta-glow" data-parallax="12" aria-hidden="true" />
+        <div className="kd-container kd-cta-grid" data-reveal="stagger">
           <div>
             <h2>Ready to try it?</h2>
             <p>Install it, add a provider key, pick a voice, and start your first conversation.</p>
@@ -187,7 +170,7 @@ export default function Home() {
             </div>
           </div>
           <ul className="kd-cta-facts">
-            <li><strong>Version {VERSION}</strong><span>Windows installer and macOS bundles</span></li>
+            <li><strong>Version 3.1.12</strong><span>Windows installer and macOS bundles</span></li>
             <li><strong>No account</strong><span>Nothing to sign up for</span></li>
             <li><strong>Apache-2.0</strong><span>First-party code, inspectable</span></li>
           </ul>

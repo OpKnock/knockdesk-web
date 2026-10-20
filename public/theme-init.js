@@ -2,13 +2,17 @@
  * Pre-paint bootstrap. Served as a plain static file and loaded synchronously
  * as the first element in <body>.
  *
- * It does two things before the browser paints, neither of which can wait for
+ * It does three things before the browser paints, none of which can wait for
  * React:
  *   1. Marks the document as scripted so CSS can safely hide elements that are
  *      about to be revealed by JS. Without the marker, a visitor without JS
  *      would never see them.
  *   2. Applies the stored colour scheme so the first paint is already correct
  *      rather than flashing light and then switching.
+ *   3. Arms a failsafe: if the scroll-motion layer has not started within a
+ *      few seconds, the `kd-motion-off` class is added and the stylesheet
+ *      shows every hidden element again. A visitor never gets a blank page
+ *      because an animation library failed to load.
  *
  * This lives in its own file on purpose. As an inline script it would force the
  * Content-Security-Policy to allow either 'unsafe-inline' or an exact SHA-256
@@ -20,6 +24,7 @@
 (function () {
   var root = document.documentElement;
   root.classList.add("js");
+
   try {
     var stored = localStorage.getItem("kd-theme");
     if (!stored) {
@@ -34,4 +39,10 @@
     // Storage can be unavailable (private mode, blocked cookies). The default
     // light theme still applies and the page stays readable.
   }
+
+  // Motion failsafe. The Motion component adds `kd-motion-on` once GSAP is
+  // running. If that never happens, the stylesheet unhides everything.
+  window.setTimeout(function () {
+    if (!root.classList.contains("kd-motion-on")) root.classList.add("kd-motion-off");
+  }, 5000);
 })();

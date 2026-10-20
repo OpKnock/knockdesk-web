@@ -52,7 +52,7 @@ export default function Contact() {
   return (
     <main id="main" className="kd-container kd-page" style={{ maxWidth: 680 }}>
       <Breadcrumbs trail={[{ label: "Contact" }]} />
-      <h1>Contact</h1>
+      <h1 data-reveal="split">Contact</h1>
       <p className="kd-lead">Questions, bug reports, feature requests, or security disclosures. I read every message.</p>
 
       <div className="kd-card" style={{ marginBottom: 48 }}>

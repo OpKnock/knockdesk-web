@@ -89,6 +89,11 @@ const nextConfig = {
   // several levels up. Without an explicit root, Turbopack walks past the repo
   // and ignores this project's package-lock.json.
   turbopack: { root },
+  outputFileTracingRoot: root,
+  // The test harness drives the dev server over 127.0.0.1; Next blocks
+  // cross-origin dev resources by default, which stops the client runtime
+  // from loading. Dev only, so it never affects a production build.
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   async headers() {
     // The negative lookahead keeps Next's own routes (_next/data, RSC
     // payloads and the static assets handled below) on Next's own cache

@@ -29,19 +29,39 @@ const base = 'http://127.0.0.1:3005';
   });
   await page.waitForTimeout(1800);
   const reveal = await page.$$eval('[data-reveal]', (els) => els.map((e) => ({
-    cls: e.className.includes('in'),
+    cls: e.hasAttribute('data-revealed'),
     op: parseFloat(getComputedStyle(e).opacity),
     tag: e.className,
+    // scrollytelling steps are deliberately dimmed while another one is active
+    intentional: e.classList.contains('kd-step'),
   })));
   const someIn = reveal.filter((r) => r.cls).length;
-  const dim = reveal.filter((r) => r.cls && r.op < 0.95).map((r) => r.tag);
+  const dim = reveal.filter((r) => r.cls && !r.intentional && r.op < 0.95).map((r) => r.tag);
   const allIn = dim.length === 0;
-  check('reveal marks elements in and lifts them to full opacity', someIn >= 3 && allIn, `${someIn}/${reveal.length} revealed, dim: ${dim.join(' | ').slice(0, 80)}`);
+  check('GSAP reveals mark elements revealed and lift them to full opacity', someIn >= 3 && allIn, `${someIn}/${reveal.length} revealed, dim: ${dim.join(' | ').slice(0, 80)}`);
 
-  // stagger: elements share a delay ladder, not one simultaneous pop
-  const staggers = await page.$$eval('[data-reveal]', (els) =>
-    Array.from(new Set(els.map((e) => e.style.getPropertyValue('--d')))).filter(Boolean).length);
-  check('reveal staggers by position', staggers >= 2, staggers + ' distinct delays');
+  // cards cascade through ScrollTrigger.batch; all must have played by now
+  const cards = await page.$$eval('[data-reveal="card"]', (els) => els.map((e) => e.hasAttribute('data-revealed')));
+  check('every card in a grid has revealed', cards.length > 0 && cards.every(Boolean), cards.length + ' cards');
+
+  // layer list: collapsed until picked, then exactly one row open with real height
+  const flow = await page.evaluate(async () => {
+    const rows = Array.from(document.querySelectorAll('.kd-flow-row'));
+    const before = rows.filter((r) => r.dataset.open === 'true').length;
+    document.querySelectorAll('.kd-flow-btn')[1].click();
+    await new Promise((res) => setTimeout(res, 700));
+    const open = Array.from(document.querySelectorAll('.kd-flow-row')).filter((r) => r.dataset.open === 'true');
+    const panel = open[0]?.querySelector('.kd-flow-panel-inner');
+    return {
+      rows: rows.length,
+      before,
+      openCount: open.length,
+      panelH: panel ? Math.round(panel.getBoundingClientRect().height) : 0,
+      titles: rows.map((r) => r.querySelector('.kd-flow-title').textContent.trim()),
+    };
+  });
+  check('layer list is collapsed until a row is picked, then one row opens',
+    flow.rows === 4 && flow.before === 0 && flow.openCount === 1 && flow.panelH > 40, JSON.stringify(flow));
 
   // ---- hero scroll-linked (copy fades, panel parallaxes) -----------------
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -58,7 +78,7 @@ const base = 'http://127.0.0.1:3005';
       heroVar: document.documentElement.style.getPropertyValue('--hero'),
     };
   });
-  check('hero copy fades and lifts with scroll', hero.copyOpacity !== null && hero.copyOpacity < 0.95, JSON.stringify(hero));
+  check('hero copy fades and lifts with scroll (GSAP scrub)', hero.copyOpacity !== null && hero.copyOpacity < 0.95, JSON.stringify(hero));
 
   // ---- parallax drifts ---------------------------------------------------
   const drift = await page.evaluate(() => {
@@ -67,8 +87,42 @@ const base = 'http://127.0.0.1:3005';
   });
   check('parallax elements carry a scroll-linked transform', drift.every((t) => t && t !== 'none'), JSON.stringify(drift));
 
+  // ---- inside the app: the three captures keep their native ratio --------
+  const shots = await page.evaluate(() => {
+    const out = [];
+    document.querySelectorAll('.kd-shot img').forEach((img) => {
+      // offsetWidth/Height is the layout box, so the globe's 3D turn does not
+      // skew the measurement the way getBoundingClientRect would.
+      out.push({
+        w: img.offsetWidth,
+        h: img.offsetHeight,
+        ratio: +(img.offsetWidth / img.offsetHeight).toFixed(3),
+        natural: +(img.naturalWidth / img.naturalHeight).toFixed(3),
+      });
+    });
+    return out;
+  });
+  check('every capture renders at its native ratio, uncropped',
+    shots.length === 3 && shots.every((s) => Math.abs(s.ratio - s.natural) < 0.01), JSON.stringify(shots));
+
+  // the world-monitor globe is turning
+  const globe = await page.evaluate(() => {
+    const img = document.querySelector('.kd-globe-img');
+    if (!img) return null;
+    const cs = getComputedStyle(img);
+    return { transform: cs.transform, name: cs.animationName };
+  });
+  check('the world monitor globe animates', globe && globe.name === 'kd-drift' && globe.transform !== 'none', JSON.stringify(globe));
+
   // ---- scrollytelling steps ---------------------------------------------
-  await page.evaluate(() => document.querySelector('[data-story]')?.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  // Start where the trigger starts (story top at 78% of the viewport), so the
+  // scroll-through below actually walks the range instead of starting past it.
+  await page.evaluate(() => {
+    const story = document.querySelector('[data-story]');
+    if (!story) return;
+    const top = story.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top - window.innerHeight * 0.78, behavior: 'instant' });
+  });
   await page.waitForTimeout(700);
   const story = await page.evaluate(() => {
     const story = document.querySelector('[data-story]');

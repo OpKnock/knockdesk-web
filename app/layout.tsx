@@ -6,6 +6,8 @@ import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import { MarkSprite } from "./components/Mark";
 import { SiteEffects } from "./components/SiteEffects";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { Motion } from "./components/Motion";
 import { Analytics } from "./components/Analytics";
 import { SITE_URL, EMAIL, GITHUB } from "./lib/site";
 
@@ -49,17 +51,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="js" suppressHydrationWarning>
       <body>
-        {/* Applies the theme and the `js` marker before first paint. Kept as a
-            separate same-origin file so the CSP needs no 'unsafe-inline' and no
-            inline hash that could drift out of sync with this markup. */}
+        {/* The pre-paint bootstrap. It has to run before the browser paints, so
+            it is a blocking script rather than async. It is an external
+            same-origin file rather than an inline one so the Content Security
+            Policy can stay strict: no inline script hash to drift out of sync
+            with this markup. */}
         <script src="/theme-init.js" async={false} />
         {/* The `js` class is on <html> in the server markup, so `[data-reveal]`
             starts hidden on the very first paint. It used to be added by the
             script above, which meant the page painted fully visible, then went
             blank a moment later, then faded back in - a flash on every visit.
-            With JS off the marker would never be added, so the reveal state is
-            released here explicitly. */}
-        <noscript><style>{`[data-reveal]{opacity:1 !important;visibility:visible !important;transform:none !important}`}</style></noscript>
+            A visitor without JavaScript never gets that class, so the
+            reveals are released explicitly here. */}
+        <noscript><style>{`[data-reveal],[data-reveal="stagger"]>*{opacity:1 !important;visibility:visible !important;transform:none !important}`}</style></noscript>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <MarkSprite />
         <a href="#main" className="kd-skip">Skip to content</a>
@@ -67,6 +71,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Footer />
         <SiteEffects />
+        <ScrollToTop />
+        <Motion />
         <Analytics />
       </body>
     </html>
