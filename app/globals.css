@@ -173,7 +173,11 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-showcase-caption { font-size: 0.875rem; color: var(--kd-faint); }
 
 /* Cursor atmosphere: a soft backdrop that follows the pointer */
-.kd-cursor-glow { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 250; opacity: 0; transition: opacity 0.25s; width: 420px; height: 420px; margin: -210px 0 0 -210px; background: radial-gradient(circle, color-mix(in srgb, var(--kd-acc) 16%, transparent) 0%, transparent 62%); transform: translate3d(var(--gx, 50vw), var(--gy, 50vh), 0); will-change: transform; }
+/* The cursor glow sits below the nav on purpose. Above it, the glow pooled
+   over the header as an orange blob that moved with the mouse, which read as
+   a lighting fault rather than as the ambient effect it is. The header stays
+   a clean bar; the glow still passes over the page itself. */
+.kd-cursor-glow { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 95; opacity: 0; transition: opacity 0.25s; width: 420px; height: 420px; margin: -210px 0 0 -210px; background: radial-gradient(circle, color-mix(in srgb, var(--kd-acc) 16%, transparent) 0%, transparent 62%); transform: translate3d(var(--gx, 50vw), var(--gy, 50vh), 0); will-change: transform; }
 /* Slips are absolutely stacked; nothing else changes positioning. */
 .kd-magnetic { position: relative; }
 .js .magnetic { transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
