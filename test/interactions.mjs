@@ -75,14 +75,23 @@ const base = process.env.KD_BASE || 'http://127.0.0.1:3005';
     els.findIndex((e) => e.dataset.on === 'true'));
   check('the matching capture is the visible one', shownAfter === 2, 'shot=' + shownAfter);
 
-  // it also advances on its own, one step at a time
+  // it also advances on its own, one step at a time. The window is longer
+  // than one hold, so the exact number of steps depends on where the first
+  // sample lands: what matters is that every step is +1 and that it wraps.
   await page.mouse.move(20, 20);
   await page.waitForTimeout(400);
-  const before = await page.evaluate(() => Number(document.querySelector('.kd-showcase')?.dataset.active));
-  await page.waitForTimeout(3400);
-  const after = await page.evaluate(() => Number(document.querySelector('.kd-showcase')?.dataset.active));
+  const seen = [];
+  for (let i = 0; i < 10; i++) {
+    seen.push(await page.evaluate(() => Number(document.querySelector('.kd-showcase')?.dataset.active)));
+    await page.waitForTimeout(700);
+  }
+  const changes = [];
+  for (let i = 1; i < seen.length; i++) {
+    if (seen[i] !== seen[i - 1]) changes.push([seen[i - 1], seen[i]]);
+  }
+  const allOneStep = changes.every(([a, b]) => b === (a + 1) % 4);
   check('the theme carousel advances on its own, one step at a time',
-    after === (before + 1) % 4, `${before} -> ${after}`);
+    changes.length >= 2 && allOneStep, `seen=${seen.join(",")}`);
 
   // --- layer rows: every one must be clickable ----------------------------
   const count = await page.$$eval('.kd-flow-btn', (e) => e.length);

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { AppFeatures } from "./components/AppFeatures";
 import { AppShowcase } from "./components/AppShowcase";
+import { DownloadCta } from "./components/DownloadCta";
 import { FaqSection } from "./components/FaqSection";
 import { Icon } from "./components/Icon";
 import { LayerFlow } from "./components/LayerFlow";
-import { Mark } from "./components/Mark";
 import type { IconName } from "./components/Icon";
 
 type Feature = { icon: IconName; title: string; desc: string };
@@ -54,22 +54,33 @@ export default function Home() {
       <section className="kd-hero">
         <div className="kd-glow kd-hero-glow" data-parallax="10" aria-hidden="true" />
         <div className="kd-hero-rules" aria-hidden="true" />
-        <div className="kd-hero-mark" aria-hidden="true">
-          <Mark />
-        </div>
         <div className="kd-container kd-hero-grid">
           <div data-hero-copy>
             <p className="kd-eyebrow" data-reveal data-hero>Your personal AI command center.</p>
             <h1 data-reveal="split" data-hero>A personal AI assistant that lives on your PC.</h1>
-            <p className="kd-sub" data-reveal data-hero>
-              KnockDesk brings voice, memory, skills, and resident agents into one desktop workspace.
-              Your files stay on your computer, and you choose the AI provider.
-            </p>
+            <ul className="kd-hero-chips" data-reveal data-hero>
+              <li>Voice</li>
+              <li>Memory</li>
+              <li>Skills</li>
+              <li>Resident agents</li>
+            </ul>
             <div className="kd-hero-actions" data-reveal data-hero>
-              <Link href="/download" className="kd-btn kd-btn-primary">Get KnockDesk</Link>
-              <a href="#features" className="kd-link">See what it does</a>
+              <DownloadCta />
+              <a href="#features" className="kd-link kd-link-arrow">
+                See what it does
+                <Icon name="arrowRight" />
+              </a>
             </div>
-            <p className="kd-hero-note" data-reveal data-hero>Free and open source. You bring your own AI provider key.</p>
+            <ul className="kd-hero-badges" data-reveal data-hero>
+              <li><Icon name="lock" />Files stay on your PC</li>
+              <li><Icon name="branch" />Free and open source</li>
+              <li><Icon name="key" />You bring your own key</li>
+            </ul>
+          </div>
+          <div data-hero-panel>
+            <div data-reveal data-hero="panel">
+              <AppShowcase />
+            </div>
           </div>
         </div>
         <div className="kd-hero-foot" aria-hidden="true">
@@ -77,18 +88,6 @@ export default function Home() {
             <span className="kd-hero-scroll">Scroll</span>
             <span className="kd-hero-rule" />
             <span className="kd-hero-foot-note">One command center, four themes, your keys.</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="kd-stage" id="stage">
-        <div className="kd-container">
-          <div className="kd-stage-inner">
-            <div data-hero-panel>
-              <div data-reveal="panel">
-                <AppShowcase />
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -184,7 +183,7 @@ export default function Home() {
             <h2>Ready to try it?</h2>
             <p>Install it, add a provider key, pick a voice, and start your first conversation.</p>
             <div className="kd-hero-actions">
-              <Link href="/download" className="kd-btn kd-btn-primary">Get KnockDesk</Link>
+              <DownloadCta />
               <Link href="/guide" className="kd-btn kd-btn-ghost">Read the guide</Link>
             </div>
           </div>
