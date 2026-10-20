@@ -38,6 +38,17 @@ const BUILDS: Build[] = [
     note: "The installer is not code signed yet, so SmartScreen will say the publisher is unknown. Choose More info, then Run anyway. The SHA-256 below is the integrity check.",
   },
   {
+    os: "Windows",
+    label: "Windows 10 and 11, MSIX package",
+    detail: "The same app as an MSIX package. Installs and uninstalls cleanly with no admin rights and no leftover files, and it updates in place. Needs Windows 10 1809 or later.",
+    file: "KnockDesk-3.1.12-x64.msix",
+    size: "292 MB",
+    sha: "0534EC423EDF5529F617169FBD25FEFDD97E86390F207C926C94E5D4074FCD8A",
+    cta: "Download MSIX for Windows",
+    check: "Get-FileHash KnockDesk-3.1.12-x64.msix -Algorithm SHA256",
+    note: "The package is Authenticode-signed and RFC 3161-timestamped. Its certificate chains to Codegic Root CA G2, which is not in Microsoft's Trusted Root Program, so Windows will warn that the publisher is unknown before installing. The SHA-256 below is the integrity check. This is the same Windows build as the installer above, not a separate one.",
+  },
+  {
     os: "macOS",
     label: "macOS, Apple Silicon",
     detail: "For M1, M2, M3, and M4 Macs. macOS 11 or later.",
