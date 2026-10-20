@@ -113,6 +113,24 @@ export function SiteEffects() {
       requestAnimationFrame(rescueStuck);
     };
 
+    // Fail-safe: the pre-animation CSS hides the animated selectors, and `js`
+    // is now on <html> in the server markup so that CSS always applies. If
+    // anything in this effect throws, or GSAP never loads, nothing would ever
+    // remove that state and the page would render blank. Release everything
+    // and stop, so a broken script costs you the animation and not the site.
+    let armed = false;
+    const releaseAll = () => {
+      if (armed) return;
+      armed = true;
+      document.documentElement.classList.add('kd-safe');
+      const all = gsap.utils.toArray<HTMLElement>(
+        '[data-reveal],[data-hero-copy],[data-hero-panel],[data-count]',
+      );
+      for (const el of all) { el.classList.add('in'); el.style.opacity = '1'; el.style.visibility = 'visible'; }
+    };
+    const failsafe = window.setTimeout(releaseAll, 4000);
+    window.addEventListener('error', releaseAll);
+
     // A refresh after a reveal has started re-applies the tween's "from"
     // state and makes the section blink. Fonts and late images are measured
     // before the first reveal begins; once motion is underway, leave the
@@ -136,13 +154,10 @@ export function SiteEffects() {
       // reduced-motion mode. Content remains fully available immediately.
       gsap.set(revealed, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
       markStarted(revealed);
-      const hero = gsap.utils.toArray<HTMLElement>(
-        "[data-hero-copy], [data-hero-copy] > *, [data-hero-panel], [data-count]",
-      );
-      gsap.set(hero, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
-      // Every animated selector is pre-hidden in CSS now, so all of them need
-      // the `.in` marker here or reduced motion would hide its own content.
-      markStarted(hero);
+      gsap.set("[data-hero-copy], [data-hero-copy] > *, [data-hero-panel]", {
+        autoAlpha: 1,
+        clearProps: "opacity,visibility,transform",
+      });
       stories.forEach((story) => {
         story.style.setProperty("--sp", "1");
         const steps = gsap.utils.toArray<HTMLElement>("[data-story-step]", story);
@@ -235,25 +250,14 @@ export function SiteEffects() {
         gsap.fromTo(
           copyParts,
           { autoAlpha: 0, y: 18 },
-          {
-            autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.09, delay: 0.1, ease: "power3.out",
-            clearProps: "opacity,visibility,transform",
-            // `.in` takes over from the now-stripped inline styles, so the
-            // parts stay visible instead of falling back to the pre-animation
-            // CSS, which would hide them again.
-            onStart: () => markStarted(copyParts),
-          },
+          { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.09, delay: 0.1, ease: "power3.out", clearProps: "opacity,visibility,transform" },
         );
       }
       if (heroPanel) {
         gsap.fromTo(
           heroPanel,
           { autoAlpha: 0, scale: 0.975 },
-          {
-            autoAlpha: 1, scale: 1, duration: 1, delay: 0.2, ease: "power3.out",
-            clearProps: "opacity,visibility",
-            onStart: () => markStarted([heroPanel]),
-          },
+          { autoAlpha: 1, scale: 1, duration: 1, delay: 0.2, ease: "power3.out", clearProps: "opacity,visibility" },
         );
       }
 
@@ -298,13 +302,10 @@ export function SiteEffects() {
         if (!Number.isFinite(target)) return;
         const counter = { value: 0 };
         el.textContent = "0";
-        // The figure is only hidden until the count starts; mark it `.in` on
-        // start so the pre-animation CSS cannot hide it once the count is done.
         gsap.to(counter, {
           value: target,
           duration: 0.9,
           ease: "power2.out",
-          onStart: () => markStarted([el]),
           onUpdate: () => { el.textContent = String(Math.round(counter.value)); },
           scrollTrigger: { trigger: el, start: "top 91%", once: true },
         });

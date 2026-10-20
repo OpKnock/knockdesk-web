@@ -388,28 +388,28 @@ html:not(.js) .kd-faq-panel { grid-template-rows: 1fr; }
 .kd-notice button:hover { border-color: var(--kd-acc); background: var(--kd-acc); color: var(--kd-on-acc); }
 
 /* GSAP owns reveal transforms; this CSS only provides the safe pre-animation
-   state. It covers every selector GSAP animates, not just [data-reveal]: the
-   hero copy and panel used to have no rule here at all, so they painted fully
-   visible until React hydrated and GSAP applied its from-state a few hundred
-   milliseconds later - a visible/hidden/visible flash on every visit. The
-   `js` class is on <html> in the server markup, so this applies from the very
-   first paint, and the <noscript> rule in layout.tsx releases it when JS is
-   off.
+   state for [data-reveal] - the scroll-triggered section reveals.
 
-   [data-story-step] is deliberately NOT listed here. Story steps are already
-   [data-reveal], so they are covered, and their `.on` state (the active step)
-   does not imply `.in` - listing the selector separately hides a step that is
-   mid-reveal and makes the deck blink as you scroll. */
-.js [data-reveal],
-.js [data-hero-copy],
-.js [data-hero-panel],
-.js [data-count] { opacity: 0; visibility: hidden; }
+   The hero selectors are deliberately NOT listed here. [data-hero-copy] is
+   also the target of the scroll-linked parallax tween, which records its
+   start value from the computed style at creation time. Hiding it here made
+   that tween record opacity 0 as its start, so the hero copy stayed at
+   opacity 0 and the entire headline was invisible. That is far too high a
+   price for removing a 300ms pre-animation flash, which is all these extra
+   rules were for. */
+.js [data-reveal] { opacity: 0; visibility: hidden; }
 /* `.in` is the finished state, applied by GSAP's onStart/onComplete. It is
    what keeps an element visible once clearProps strips its inline styles. */
-.js [data-reveal].in,
-.js [data-hero-copy].in,
-.js [data-hero-panel].in,
-.js [data-count].in { opacity: 1; visibility: visible; }
+.js [data-reveal].in { opacity: 1; visibility: visible; }
+
+/* Fail-safe. SiteEffects arms this if GSAP throws or never loads, because the
+   rules above would otherwise leave the whole page blank: the animation is
+   lost, the site is not. See the releaseAll() fallback in SiteEffects.tsx. */
+.kd-safe [data-reveal],
+.kd-safe [data-hero-copy],
+.kd-safe [data-hero-panel],
+.kd-safe [data-count],
+.kd-safe [data-reveal] * { opacity: 1 !important; visibility: visible !important; transform: none !important; }
 
 /* Scrollytelling step state lives with the .kd-step rules above. */
 
