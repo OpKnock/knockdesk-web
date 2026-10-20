@@ -10,7 +10,7 @@ export function FaqSection({ faqs }: { faqs: Array<{ q: string; a: string }> }) 
   return (
     <section className="kd-section" id="faq">
       <div className="kd-container" style={{ maxWidth: 840 }}>
-        <h2 data-reveal style={{ marginBottom: 40 }}>Questions, answered</h2>
+        <h2 data-reveal="split" style={{ marginBottom: 40 }}>Questions, answered</h2>
         <div style={{ marginBottom: 40 }}>
           <label htmlFor="faq-search" className="kd-label">Search the FAQ</label>
           <input id="faq-search" type="search" className="kd-input" placeholder="Type a keyword, for example: free, offline, macOS" value={query} onChange={(e) => setQuery(e.target.value)} />

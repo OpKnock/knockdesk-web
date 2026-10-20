@@ -12,7 +12,7 @@ export default function Terms() {
     <>
       <main id="main" className="kd-container kd-legal kd-page">
         <Breadcrumbs trail={[{ label: "Terms of Service" }]} />
-        <h1>Terms of Service</h1>
+        <h1 data-reveal="split">Terms of Service</h1>
         <p className="kd-meta">
           Effective: October 17, 2026. Contact: wagdemehul@gmail.com
         </p>

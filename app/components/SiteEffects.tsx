@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
-
-const clamp = (v: number) => Math.min(1, Math.max(0, v));
+import { ScrollTrigger } from "../lib/gsap";
 
 export function SiteEffects() {
   const path = usePathname();
@@ -13,7 +12,6 @@ export function SiteEffects() {
   const top = useRef<HTMLButtonElement>(null);
   const contact = useRef<HTMLAnchorElement>(null);
   const glow = useRef<HTMLDivElement>(null);
-  const ring = useRef<HTMLDivElement>(null);
   const [notice, setNotice] = useState(false);
 
   useEffect(() => {
@@ -28,146 +26,52 @@ export function SiteEffects() {
     document.documentElement.classList.toggle("kd-notice-open", notice);
   }, [notice]);
 
+  // Scroll progress bar and the floating buttons. Page animation lives in
+  // Motion.tsx; these are state indicators, so they stay on under reduced motion.
   useEffect(() => {
-    const root = document.documentElement;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tracked = Array.from(document.querySelectorAll<HTMLElement>("[data-progress]"));
-    const parallax = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
-    const stories = Array.from(document.querySelectorAll<HTMLElement>("[data-story]"));
-    const heroCopy = document.querySelector<HTMLElement>("[data-hero-copy]");
-    const heroPanel = document.querySelector<HTMLElement>("[data-hero-panel]");
-    let raf = 0;
-
-    const update = () => {
-      raf = 0;
-      const y = window.scrollY;
-      const vh = window.innerHeight;
-      const max = document.documentElement.scrollHeight - vh;
-      if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? clamp(y / max) : 0})`;
-      top.current?.classList.toggle("visible", y > 400);
-      contact.current?.classList.toggle("visible", y > 600);
-      if (reduced) return;
-
-      // hero: the copy lifts and fades, the panel drifts down slower (parallax)
-      root.style.setProperty("--hero", clamp(y / (vh * 0.9)).toFixed(3));
-      if (heroCopy) {
-        const h = clamp(1 - y / (vh * 0.72));
-        heroCopy.style.opacity = (0.25 + h * 0.75).toFixed(3);
-        heroCopy.style.setProperty("--hp", h.toFixed(3));
-      }
-      if (heroPanel) heroPanel.style.setProperty("--hp", clamp(y / (vh * 0.9)).toFixed(3));
-
-      // per-element scroll-linked progress, 0 at entry to 1 at exit
-      for (const el of tracked) {
-        const r = el.getBoundingClientRect();
-        el.style.setProperty("--s", clamp((vh - r.top) / (vh + r.height) * 1.6 - 0.25).toFixed(3));
-      }
-      for (const el of parallax) {
-        const r = el.getBoundingClientRect();
-        const p = clamp((vh - r.top) / (vh + r.height));
-        el.style.setProperty("--p", p.toFixed(4));
-      }
-
-      // scrollytelling: the section is one row, so the active step advances
-      // with scroll progress through the section rather than per-step position
-      for (const story of stories) {
-        const steps = Array.from(story.querySelectorAll<HTMLElement>("[data-story-step]"));
-        if (!steps.length) continue;
-        const r = story.getBoundingClientRect();
-        const span = Math.max(1, r.height + vh * 0.5);
-        const fill = clamp((vh * 0.5 - r.top) / span);
-        const active = Math.min(steps.length - 1, Math.floor(fill * steps.length));
-        steps.forEach((s, i) => s.classList.toggle("on", i === active));
-        story.style.setProperty("--sp", fill.toFixed(3));
-      }
-    };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
-
-    const revealed = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
-    // stagger by position in the DOM, so groups cascade instead of popping
-    revealed.forEach((el, i) => {
-      if (!el.style.getPropertyValue("--d")) {
-        const sameParent = Array.from(el.parentElement?.children || []).indexOf(el);
-        el.style.setProperty("--d", `${Math.max(0, sameParent) * 80}ms`);
-      }
-    });
-    const countUp = (el: HTMLElement) => {
-      const target = parseFloat(el.dataset.count || "");
-      if (!Number.isFinite(target) || el.dataset.counted === "1") return;
-      el.dataset.counted = "1";
-      if (reduced) { el.textContent = String(target); return; }
-      const dur = 900;
-      const t0 = performance.now();
-      const tick = (now: number) => {
-        const k = Math.min(1, (now - t0) / dur);
-        const eased = 1 - Math.pow(1 - k, 3);
-        el.textContent = String(Math.round(target * eased));
-        if (k < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    };
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) {
-          (e.target as HTMLElement).classList.add("in");
-          countUp(e.target as HTMLElement);
-          io.unobserve(e.target);
-        }
+    const triggers = [
+      ScrollTrigger.create({
+        start: 0,
+        end: "max",
+        onUpdate: (self) => {
+          if (bar.current) bar.current.style.transform = `scaleX(${self.progress})`;
+        },
       }),
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
-    );
-    revealed.forEach((el) => io.observe(el));
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      io.disconnect();
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
+      ScrollTrigger.create({
+        start: 400,
+        end: "max",
+        onToggle: (self) => top.current?.classList.toggle("visible", self.isActive),
+      }),
+      ScrollTrigger.create({
+        start: 600,
+        end: "max",
+        onToggle: (self) => contact.current?.classList.toggle("visible", self.isActive),
+      }),
+    ];
+    return () => triggers.forEach((t) => t.kill());
   }, [path]);
 
-  // Cursor atmosphere: a soft backdrop that follows the pointer, and a ring
-  // that snaps to whatever interactive thing is under it. Both are decorative
-  // and pointer-transparent, and both stand down for touch and reduced motion.
+  // Cursor atmosphere: a soft backdrop that follows the pointer. Decorative
+  // and pointer-transparent, and stands down for touch and reduced motion.
   useEffect(() => {
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const g = glow.current;
-    const r = ring.current;
-    if (coarse || still || !g || !r) return;
+    if (coarse || still || !g) return;
 
     let tx = window.innerWidth / 2;
     let ty = window.innerHeight / 2;
     let cx = tx;
     let cy = ty;
     let raf = 0;
-    let hovering: Element | null = null;
     let tiltCard: HTMLElement | null = null;
 
-    const interactive = 'a, button, summary, input, [role="button"], .kd-slip';
     const tiltable = '.kd-feature, .kd-card, .kd-build, .kd-step';
 
     const onMove = (e: PointerEvent) => {
       tx = e.clientX;
       ty = e.clientY;
       g.style.opacity = "1";
-      const hit = (e.target as Element | null)?.closest?.(interactive) || null;
-      if (hit !== hovering) {
-        hovering = hit;
-        if (hit) {
-          const b = hit.getBoundingClientRect();
-          r.style.setProperty("--rx", `${b.left + b.width / 2}px`);
-          r.style.setProperty("--ry", `${b.top + b.height / 2}px`);
-          r.style.setProperty("--rw", `${b.width + 14}px`);
-          r.style.setProperty("--rh", `${b.height + 14}px`);
-          r.dataset.on = "true";
-        } else {
-          delete r.dataset.on;
-        }
-      }
 
       // magnetic tilt: cards lean toward the cursor and carry a spotlight
       const card = (e.target as Element | null)?.closest?.(tiltable) as HTMLElement | null;
@@ -202,33 +106,17 @@ export function SiteEffects() {
       if (Math.abs(tx - cx) > 0.4 || Math.abs(ty - cy) > 0.4) raf = requestAnimationFrame(tick);
     };
 
-    // keep the ring glued while the page scrolls under a hovered control
-    const reflow = () => {
-      if (!hovering || !hovering.isConnected) return;
-      const b = hovering.getBoundingClientRect();
-      r.style.setProperty("--rx", `${b.left + b.width / 2}px`);
-      r.style.setProperty("--ry", `${b.top + b.height / 2}px`);
-      r.style.setProperty("--rw", `${b.width + 14}px`);
-      r.style.setProperty("--rh", `${b.height + 14}px`);
-    };
-
     const onLeave = () => {
       g.style.opacity = "0";
-      hovering = null;
-      delete r.dataset.on;
       resetTilt();
     };
 
     document.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerdown", onMove, { passive: true });
-    window.addEventListener("scroll", reflow, { passive: true });
-    window.addEventListener("resize", reflow);
     document.addEventListener("pointerleave", onLeave);
     return () => {
       document.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerdown", onMove);
-      window.removeEventListener("scroll", reflow);
-      window.removeEventListener("resize", reflow);
       document.removeEventListener("pointerleave", onLeave);
       if (raf) cancelAnimationFrame(raf);
     };
@@ -238,7 +126,6 @@ export function SiteEffects() {
     <>
       <div ref={bar} className="kd-progress" aria-hidden="true" />
       <div ref={glow} className="kd-cursor-glow" aria-hidden="true" />
-      <div ref={ring} className="kd-cursor-ring" aria-hidden="true" />
       <Link ref={contact} href="/contact" className="kd-fab kd-float-contact" aria-label="Contact support">
         <Icon name="chat" /> Contact
       </Link>

@@ -30,57 +30,121 @@ const base = 'http://127.0.0.1:3011';
   await page.waitForTimeout(450);
   const ring = await page.evaluate(() => {
     const el = document.querySelector('.kd-cursor-ring');
-    return { on: el.dataset.on, rw: el.style.getPropertyValue('--rw'), rx: el.style.getPropertyValue('--rx') };
+    return { exists: !!el };
   });
-  check('focus ring snaps to the hovered link', ring.on === 'true' && ring.rw !== '', JSON.stringify(ring));
+  check('no orange hover ring is drawn over options', !ring.exists, JSON.stringify(ring));
 
-  // --- hero panel parallax ----------------------------------------------
-  await page.mouse.move(1180, 500, { steps: 8 });
-  await page.waitForTimeout(700);
-  const tilt = await page.evaluate(() => {
-    const win = document.querySelector('.kd-panel-window');
-    const wrap = document.querySelector('.kd-panel');
-    return { px: getComputedStyle(wrap).getPropertyValue('--px').trim(), py: getComputedStyle(wrap).getPropertyValue('--py').trim() };
+  // --- hero showcase -----------------------------------------------------
+  const hero = await page.evaluate(() => {
+    const frame = document.querySelector('.kd-showcase-frame');
+    const wrap = document.querySelector('.kd-showcase');
+    return {
+      hasFrame: !!frame,
+      hasWrap: !!wrap,
+      acc: wrap ? getComputedStyle(wrap).getPropertyValue('--acc').trim() : '',
+    };
   });
-  check('hero panel parallax responds', tilt.px !== '' && tilt.px !== '0', JSON.stringify(tilt));
+  check('hero renders the app showcase', hero.hasFrame && hero.hasWrap && hero.acc !== '', JSON.stringify(hero));
 
-  // --- layer slips: every one must be clickable -------------------------
-  const count = await page.$$eval('.kd-slip', (e) => e.length);
-  check('four slips render', count === 4, 'count=' + count);
+  // --- app showcase: the themes rotate -----------------------------------
+  const shotCount = await page.$$eval('.kd-showcase-shot', (e) => e.length);
+  check('four theme captures render', shotCount === 4, 'count=' + shotCount);
 
-  const rects = await page.$$eval('.kd-slip', (els) =>
+  const shown = await page.$$eval('.kd-showcase-shot', (els) =>
+    els.filter((e) => e.dataset.on === 'true').length);
+  check('exactly one theme is visible', shown === 1, 'visible=' + shown);
+
+  // the frame keeps the capture's native 16:9 ratio
+  const ratio = await page.$eval('.kd-showcase-frame', (e) => {
+    const r = e.getBoundingClientRect();
+    return r.width / r.height;
+  });
+  check('showcase frame keeps the 1917x1078 ratio', Math.abs(ratio - 1917 / 1078) < 0.02, 'ratio=' + ratio.toFixed(3));
+
+  // clicking a dot switches theme. Hover first: hovering pauses the carousel,
+  // so the assertion is not racing the auto-advance.
+  await page.hover('.kd-showcase-dots');
+  await page.waitForTimeout(400);
+  await page.evaluate(() => document.querySelectorAll('.kd-showcase-dots button')[2].click());
+  await page.waitForTimeout(800);
+  const onDot = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('.kd-showcase-dots button')).findIndex((b) => b.getAttribute('aria-pressed') === 'true'));
+  check('theme dots switch the capture', onDot === 2, 'dot=' + onDot);
+
+  const shownAfter = await page.$$eval('.kd-showcase-shot', (els) =>
+    els.findIndex((e) => e.dataset.on === 'true'));
+  check('the matching capture is the visible one', shownAfter === 2, 'shot=' + shownAfter);
+
+  // it also advances on its own, one step at a time
+  await page.mouse.move(20, 20);
+  await page.waitForTimeout(400);
+  const before = await page.evaluate(() => Number(document.querySelector('.kd-showcase')?.dataset.active));
+  await page.waitForTimeout(3400);
+  const after = await page.evaluate(() => Number(document.querySelector('.kd-showcase')?.dataset.active));
+  check('the theme carousel advances on its own, one step at a time',
+    after === (before + 1) % 4, `${before} -> ${after}`);
+
+  // --- layer rows: every one must be clickable ----------------------------
+  const count = await page.$$eval('.kd-flow-btn', (e) => e.length);
+  check('four layer rows render', count === 4, 'count=' + count);
+
+  // nothing is open until the reader picks one
+  const initialOpen = await page.$$eval('.kd-flow-row', (els) => els.filter((e) => e.dataset.open === 'true').length);
+  check('all layer rows start closed', initialOpen === 0, 'open=' + initialOpen);
+
+  const rects = await page.$$eval('.kd-flow-row', (els) =>
     els.map((e) => {
       const r = e.getBoundingClientRect();
-      return { top: Math.round(r.top), bottom: Math.round(r.bottom), pos: getComputedStyle(e).position };
+      return { top: Math.round(r.top), h: Math.round(r.height), pos: getComputedStyle(e).position };
     }));
-  check('slips are absolutely stacked (not in flow)', rects.every((r) => r.pos === 'absolute'), JSON.stringify(rects[0]));
+  check('rows sit in normal flow and stack downward',
+    rects.every((r) => r.pos !== 'absolute' && r.h > 0) &&
+    rects.every((r, i) => i === 0 || r.top > rects[i - 1].top), JSON.stringify(rects.map((r) => r.top)));
 
   for (let i = 0; i < count; i++) {
-    await page.$$eval('.kd-slip', (els, idx) => els[idx].click(), i);
-    await page.waitForTimeout(420);
-    const state = await page.evaluate(() => {
-      const els = Array.from(document.querySelectorAll('.kd-slip'));
+    await page.$$eval('.kd-flow-btn', (els, idx) => els[idx].click(), i);
+    await page.waitForTimeout(560);
+    const state = await page.evaluate((idx) => {
+      const rows = Array.from(document.querySelectorAll('.kd-flow-row'));
+      const row = rows[idx];
+      const panel = row.querySelector('.kd-flow-panel-inner');
       return {
-        active: els.findIndex((e) => e.dataset.active === 'true'),
-        blurb: document.querySelector('.kd-layers-blurb').textContent.trim(),
-        points: document.querySelectorAll('.kd-layers-info li').length,
-        overlap: els.every((e) => {
-          const t = getComputedStyle(e).transform;
-          return t !== 'none';
-        }),
+        open: rows.findIndex((r) => r.dataset.open === 'true'),
+        expanded: row.querySelector('.kd-flow-btn').getAttribute('aria-expanded'),
+        blurb: row.querySelector('.kd-flow-blurb').textContent.trim(),
+        points: row.querySelectorAll('.kd-flow-points li').length,
+        panelH: Math.round(panel.getBoundingClientRect().height),
+        title: row.querySelector('.kd-flow-title').textContent.trim(),
       };
-    });
-    check(`slip ${i} selects and shows its info`, state.active === i && state.points === 3,
-      `active=${state.active} points=${state.points} overlap=${state.overlap} blurb="${state.blurb.slice(0, 46)}"`);
+    }, i);
+    check(`layer ${i} opens and shows its detail`,
+      state.open === i && state.expanded === 'true' && state.points === 3 && state.panelH > 40,
+      `open=${state.open} points=${state.points} panelH=${state.panelH} title="${state.title}" blurb="${state.blurb.slice(0, 40)}"`);
   }
 
-  // keyboard reachability
-  await page.evaluate(() => document.querySelectorAll('.kd-slip')[2].focus());
+  // clicking the open row again closes it
+  await page.$$eval('.kd-flow-btn', (els, idx) => els[idx].click(), 3);
+  await page.waitForTimeout(560);
+  const closed = await page.$$eval('.kd-flow-row', (els) => els.filter((e) => e.dataset.open === 'true').length);
+  check('clicking an open row closes it', closed === 0, 'open=' + closed);
+
+  // keyboard reachability (bring the list on screen first, so the rows have
+  // finished their reveal and the buttons can take focus)
+  await page.evaluate(() => {
+    const flow = document.querySelector('.kd-flow');
+    const top = flow.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top - window.innerHeight * 0.3, behavior: 'instant' });
+  });
+  await page.waitForTimeout(900);
+  await page.evaluate(() => document.querySelectorAll('.kd-flow-btn')[2].focus());
+  const focused = await page.evaluate(() =>
+    document.activeElement?.classList.contains('kd-flow-btn') ?? false);
+  check('layer row buttons can take focus', focused, 'focused=' + focused);
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(400);
   const kb = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('.kd-slip')).findIndex((e) => e.dataset.active === 'true'));
-  check('slips work from the keyboard', kb === 2, 'active=' + kb);
+    Array.from(document.querySelectorAll('.kd-flow-row')).findIndex((e) => e.dataset.open === 'true'));
+  check('layer rows work from the keyboard', kb === 2, 'open=' + kb);
 
   // --- orb is gone, no API-costs text anywhere ---------------------------
   const body = await page.content();

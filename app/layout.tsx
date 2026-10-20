@@ -6,6 +6,7 @@ import { Nav } from "./components/Nav";
 import { Footer } from "./components/Footer";
 import { MarkSprite } from "./components/Mark";
 import { SiteEffects } from "./components/SiteEffects";
+import { Motion } from "./components/Motion";
 import { Analytics } from "./components/Analytics";
 import { SITE_URL, EMAIL, GITHUB } from "./lib/site";
 
@@ -49,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');try{var t=localStorage.getItem('kd-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t}catch(e){}" }} />
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js');setTimeout(function(){var d=document.documentElement;if(!d.classList.contains('kd-motion-on'))d.classList.add('kd-motion-off')},5000);try{var t=localStorage.getItem('kd-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t}catch(e){}" }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <MarkSprite />
         <a href="#main" className="kd-skip">Skip to content</a>
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Footer />
         <SiteEffects />
+        <Motion />
         <Analytics />
       </body>
     </html>

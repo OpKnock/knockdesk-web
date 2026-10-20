@@ -16,7 +16,7 @@ export default function Guide() {
   return (
     <main id="main" className="kd-container kd-page kd-doc">
       <Breadcrumbs trail={[{ label: "Guide" }]} />
-      <h1>Getting started</h1>
+      <h1 data-reveal="split">Getting started</h1>
       <p className="kd-lead">Run KnockDesk, add a provider key, and know where your files live.</p>
 
       <h2>1. Run KnockDesk</h2>

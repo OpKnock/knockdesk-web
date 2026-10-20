@@ -12,7 +12,7 @@ export default function Cookies() {
     <>
       <main id="main" className="kd-container kd-legal kd-page">
         <Breadcrumbs trail={[{ label: "Cookie Policy" }]} />
-        <h1>Cookie Policy</h1>
+        <h1 data-reveal="split">Cookie Policy</h1>
         <p className="kd-meta">
           Effective: October 17, 2026. Contact: wagdemehul@gmail.com
         </p>

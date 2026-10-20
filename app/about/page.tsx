@@ -21,7 +21,7 @@ export default function About() {
           View source on GitHub
         </a>
       </div>
-      <h1>About KnockDesk</h1>
+      <h1 data-reveal="split">About KnockDesk</h1>
       <p className="kd-lead">A JARVIS-inspired AI workspace that feels personal and helps you get practical work done on your computer.</p>
 
       <h2>What it is</h2>

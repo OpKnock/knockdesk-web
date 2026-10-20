@@ -88,7 +88,7 @@ export default function Download() {
           View source on GitHub
         </a>
       </div>
-      <h1>Get KnockDesk</h1>
+      <h1 data-reveal="split">Get KnockDesk</h1>
       <p className="kd-lead">
         Version {VERSION}. Free and open source. Pick your system below; the
         download starts immediately and you are not taken to a release page.
@@ -96,7 +96,7 @@ export default function Download() {
 
       <div className="kd-builds">
         {BUILDS.map((b) => (
-          <article key={b.file} className="kd-build">
+          <article key={b.file} className="kd-build" data-reveal="card">
             <header>
               <p className="kd-build-os">{b.os}</p>
               <h2>{b.label}</h2>
