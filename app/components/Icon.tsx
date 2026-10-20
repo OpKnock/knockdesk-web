@@ -11,11 +11,7 @@ const paths = {
   memory: <><rect x="5" y="5" width="14" height="14" rx="2" /><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" /></>,
   key: <><circle cx="8" cy="15" r="4" /><path d="M11 12l9-9M16 7l3 3" /></>,
   town: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><path d="M14 17.5h7M17.5 14v7" /></>,
-  lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 018 0v3" /></>,
-  branch: <><circle cx="6" cy="6" r="2.5" /><circle cx="6" cy="18" r="2.5" /><circle cx="18" cy="8" r="2.5" /><path d="M6 8.5v7M18 10.5c0 3-4 2.5-6 3.5" /></>,
-  download: <><path d="M12 3v12M7 11l5 5 5-5" /><path d="M4 21h16" /></>,
   arrow: <path d="M12 19V5M5 12l7-7 7 7" />,
-  arrowRight: <path d="M4 12h15M13 6l6 6-6 6" />,
   chat: <path d="M4 5h16v11H8l-4 4z" />,
 } satisfies Record<string, React.ReactNode>;
 
