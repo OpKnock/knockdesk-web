@@ -4,6 +4,7 @@ import { AppShowcase } from "./components/AppShowcase";
 import { FaqSection } from "./components/FaqSection";
 import { Icon } from "./components/Icon";
 import { LayerFlow } from "./components/LayerFlow";
+import { Mark } from "./components/Mark";
 import type { IconName } from "./components/Icon";
 
 type Feature = { icon: IconName; title: string; desc: string };
@@ -52,6 +53,10 @@ export default function Home() {
 
       <section className="kd-hero">
         <div className="kd-glow kd-hero-glow" data-parallax="10" aria-hidden="true" />
+        <div className="kd-hero-rules" aria-hidden="true" />
+        <div className="kd-hero-mark" aria-hidden="true">
+          <Mark />
+        </div>
         <div className="kd-container kd-hero-grid">
           <div data-hero-copy>
             <p className="kd-eyebrow" data-reveal data-hero>Your personal AI command center.</p>
@@ -65,6 +70,13 @@ export default function Home() {
               <a href="#features" className="kd-link">See what it does</a>
             </div>
             <p className="kd-hero-note" data-reveal data-hero>Free and open source. You bring your own AI provider key.</p>
+          </div>
+        </div>
+        <div className="kd-hero-foot" aria-hidden="true">
+          <div className="kd-container">
+            <span className="kd-hero-scroll">Scroll</span>
+            <span className="kd-hero-rule" />
+            <span className="kd-hero-foot-note">One command center, four themes, your keys.</span>
           </div>
         </div>
       </section>
