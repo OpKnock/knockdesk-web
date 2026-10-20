@@ -91,13 +91,20 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 /* Hero + app showcase */
 .kd-hero { padding: 64px 0 88px; overflow: hidden; min-height: 100svh; display: flex; align-items: center; }
 .kd-hero h1 { font-size: clamp(2.75rem, 5.6vw, 4.75rem); }
-.kd-hero-grid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 56px; align-items: center; width: 100%; }
+.kd-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; align-items: center; width: 100%; }
 .kd-hero-grid > div:first-child { max-width: 920px; }
 .kd-hero p.kd-sub { font-size: 1.375rem; margin: 32px 0 40px; max-width: 72ch; color: var(--kd-muted); }
 .kd-hero-actions { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
 .kd-hero-note { margin-top: 24px; font-size: 0.9375rem; color: var(--kd-faint); }
 .kd-btn-ghost { background: transparent; color: inherit; border-color: currentColor; }
 .kd-btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+
+/* The app window gets a stage of its own, below the hero, so the first
+   screen is only the headline and the call to action. */
+.kd-stage { padding: 0 0 128px; overflow: hidden; }
+.kd-stage-inner { max-width: 1100px; margin: 0 auto; }
+.kd-stage-lead { font-size: 1.375rem; margin: 0 auto 48px; max-width: 60ch; text-align: center; color: var(--kd-muted); }
+.kd-stage-note { margin-top: 32px; font-size: 0.9375rem; color: var(--kd-faint); text-align: center; }
 
 /* App showcase: the real window, rotating through its themes */
 .kd-showcase { width: 100%; }
@@ -468,8 +475,9 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 
 /* Breadcrumbs */
 .kd-crumbs ol { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.875rem; margin-bottom: 40px; }
-.kd-crumbs a { color: var(--kd-muted); text-decoration: none; padding: 8px 0; display: inline-block; }
-.kd-crumbs a:hover { color: var(--kd-acc); text-decoration: underline; }
+/* The separator and the label sit inside the same list item, so the gap on
+   the list does not separate them. It needs its own space. */
+.kd-crumbs-sep { margin-right: 8px; color: var(--kd-faint); }
 
 /* Utility UI: skip link, progress, floats, notice */
 .kd-skip { position: absolute; top: -64px; left: 16px; z-index: 300; background: var(--kd-ink); color: var(--kd-on-ink); padding: 14px 20px; border-radius: 4px; font-weight: 600; text-decoration: none; }
@@ -577,6 +585,10 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   :root { --kd-pad: 20px; }
   .kd-section { padding: 80px 0; }
   .kd-hero { padding: 40px 0 64px; }
+  .kd-hero h1 { font-size: clamp(2.25rem, 9vw, 3rem); }
+  .kd-hero-actions { gap: 20px; margin-top: 32px; }
+  .kd-stage { padding-bottom: 88px; }
+  .kd-stage-lead { font-size: 1.125rem; margin-bottom: 32px; }
   .kd-head { margin-bottom: 48px; }
   .kd-grid-3 { grid-template-columns: 1fr; }
   .kd-hero-actions .kd-btn { width: 100%; }
@@ -633,6 +645,21 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-doc ol { padding-left: 24px; margin: 16px 0; color: var(--kd-muted); }
 .kd-doc ol li { padding: 6px 0 6px 8px; }
 .kd-doc a:not(.kd-btn):not(.kd-link) { color: var(--kd-acc); text-underline-offset: 3px; }
+
+/* Breadcrumb links sit inside a page that colours every inline link with
+   the accent, and that rule matches on the absence of a class, so it beats
+   a plain `.kd-crumb-link`. The breadcrumb opts back out here. */
+.kd-crumbs a.kd-crumb-link:not(.kd-btn):not(.kd-link) {
+  color: var(--kd-muted);
+  text-decoration: none;
+  padding: 8px 0;
+  display: inline-block;
+}
+.kd-crumbs a.kd-crumb-link:not(.kd-btn):not(.kd-link):hover {
+  color: var(--kd-acc);
+  text-decoration: underline;
+}
+.kd-crumb-current { color: var(--kd-ink); font-weight: 500; }
 .kd-callout { border-left: 4px solid var(--kd-acc); background: var(--kd-soft); padding: 20px 24px; margin: 32px 0; border-radius: 0 4px 4px 0; }
 .kd-callout p { margin: 0; font-size: 1rem; }
 @media (max-width: 960px) { .kd-two { grid-template-columns: 1fr; } .kd-builds { grid-template-columns: 1fr; } .kd-help-shots { grid-template-columns: 1fr; } }

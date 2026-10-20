@@ -123,6 +123,22 @@ export function Motion() {
 
         if (kind === "split") {
           splitReveal(el);
+        } else if (kind === "panel") {
+          // The app window. It rises a little further than the other reveals
+          // because it is the large object on the page.
+          gsap.fromTo(
+            el,
+            { autoAlpha: 0, y: 64, scale: 0.975 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              duration: 1.5,
+              ease: OUT,
+              scrollTrigger: { trigger: el, start: "top 88%", once: true },
+              onComplete: () => settle(el),
+            },
+          );
         } else if (kind === "card") {
           cards.push(el);
         } else if (kind === "stagger") {
@@ -249,12 +265,22 @@ export function Motion() {
       // ---- parallax: wide screens only ------------------------------------
       if (wide) {
         const hero = document.querySelector<El>(".kd-hero");
+        const stage = document.querySelector<El>(".kd-stage");
         const copy = document.querySelector<El>("[data-hero-copy]");
         const panel = document.querySelector<El>("[data-hero-panel]");
         if (hero) {
+          // The headline lifts and fades as the hero scrolls out of the way.
           const trigger = { trigger: hero, start: "top top", end: "bottom top", scrub: 0.6 };
           if (copy) gsap.to(copy, { y: -56, opacity: 0.25, ease: "none", scrollTrigger: trigger });
-          if (panel) gsap.to(panel, { y: 84, ease: "none", scrollTrigger: trigger });
+        }
+        if (stage && panel) {
+          // The app window drifts as its own section passes, so it reads as
+          // a separate layer rather than riding along with the headline.
+          gsap.to(panel, {
+            y: 84,
+            ease: "none",
+            scrollTrigger: { trigger: stage, start: "top bottom", end: "bottom top", scrub: 0.6 },
+          });
         }
         all("[data-parallax]").forEach((el) => {
           const amt = parseFloat(el.dataset.parallax || "") || 6;

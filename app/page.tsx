@@ -56,21 +56,30 @@ export default function Home() {
           <div data-hero-copy>
             <p className="kd-eyebrow" data-reveal data-hero>Your personal AI command center.</p>
             <h1 data-reveal="split" data-hero>A personal AI assistant that lives on your PC.</h1>
-            <p className="kd-sub" data-reveal data-hero>
-              KnockDesk brings voice, memory, skills, and resident agents into one desktop workspace.
-              Your files stay on your computer, and you choose the AI provider.
-            </p>
             <div className="kd-hero-actions" data-reveal data-hero>
               <Link href="/download" className="kd-btn kd-btn-primary">Get KnockDesk</Link>
               <a href="#features" className="kd-link">See what it does</a>
             </div>
-            <p className="kd-hero-note" data-reveal data-hero>Free and open source. You bring your own AI provider key.</p>
           </div>
-          <div data-hero-panel>
-            <div data-reveal data-hero="panel">
-              <AppShowcase />
+        </div>
+      </section>
+
+      <section className="kd-stage" id="stage">
+        <div className="kd-container">
+          <p className="kd-sub kd-stage-lead" data-reveal>
+            KnockDesk brings voice, memory, skills, and resident agents into one desktop workspace.
+            Your files stay on your computer, and you choose the AI provider.
+          </p>
+          <div className="kd-stage-inner">
+            <div data-hero-panel>
+              <div data-reveal="panel">
+                <AppShowcase />
+              </div>
             </div>
           </div>
+          <p className="kd-hero-note kd-stage-note" data-reveal>
+            Free and open source. You bring your own AI provider key.
+          </p>
         </div>
       </section>
 

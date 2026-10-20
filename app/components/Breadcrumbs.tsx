@@ -14,11 +14,15 @@ export function Breadcrumbs({ trail }: { trail: Array<{ label: string; href?: st
     <nav aria-label="Breadcrumb" className="kd-crumbs">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ol>
-        <li><Link href="/">Home</Link></li>
+        <li><Link href="/" className="kd-crumb-link">Home</Link></li>
         {trail.map((t, i) => (
           <li key={i}>
             <span aria-hidden="true" className="kd-crumbs-sep">/</span>
-            {t.href ? <Link href={t.href}>{t.label}</Link> : <span aria-current="page" className="kd-crumb-current">{t.label}</span>}
+            {t.href ? (
+              <Link href={t.href} className="kd-crumb-link">{t.label}</Link>
+            ) : (
+              <span aria-current="page" className="kd-crumb-current">{t.label}</span>
+            )}
           </li>
         ))}
       </ol>
