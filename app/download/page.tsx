@@ -107,7 +107,7 @@ function GithubMark() {
 
 export default function Download() {
   return (
-    <main id="main" className="kd-container kd-page kd-doc">
+    <main id="main" className="kd-container kd-page kd-doc kd-wide">
       <div className="kd-page-top">
         <Breadcrumbs trail={[{ label: "Get KnockDesk" }]} />
         <a className="kd-source" href={GITHUB} rel="noopener noreferrer">

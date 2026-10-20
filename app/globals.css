@@ -46,6 +46,10 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-section { padding: 128px 0; border-top: 1px solid var(--kd-border); }
 .kd-eyebrow { font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--kd-acc); margin-bottom: 24px; }
 .kd-page { padding-top: 72px; padding-bottom: 128px; max-width: 760px; }
+/* The download page carries cards side by side, so it needs the full width.
+   Without this the two-column grid is squeezed into the narrow reading
+   column and the card contents overflow it. */
+.kd-page.kd-wide { max-width: 1200px; }
 .kd-page h1 { font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 16px; }
 .kd-meta { font-size: 0.875rem; color: var(--kd-faint); margin-bottom: 48px; }
 .kd-lead { font-size: 1.25rem; margin-bottom: 48px; }
@@ -408,6 +412,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 /* Download builds */
 .kd-builds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 48px 0 64px; }
 .kd-build { border: 1.5px solid var(--kd-ink); border-radius: 8px; padding: 32px; background: var(--kd-surface); display: grid; gap: 14px; align-content: start; }
+.kd-build > * { min-width: 0; }
 .kd-build-os { display: flex; align-items: center; gap: 10px; font: 600 0.6875rem var(--kd-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--kd-acc); }
 .kd-build-os svg { width: 16px; height: 16px; flex: none; }
 .kd-build h2 { font-size: 1.625rem; letter-spacing: -0.02em; margin-bottom: 8px; }
@@ -415,8 +420,9 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-build-meta { font-size: 0.875rem; color: var(--kd-faint); font-family: ui-monospace, Menlo, Consolas, monospace; }
 .kd-build-actions { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
 .kd-build-check { font-size: 0.875rem; color: var(--kd-muted); }
-.kd-build-check code { background: var(--kd-soft); border: 1px solid var(--kd-border); border-radius: 4px; padding: 4px 8px; font-size: 0.8125rem; }
+.kd-build-check code { background: var(--kd-soft); border: 1px solid var(--kd-border); border-radius: 4px; padding: 4px 8px; font-size: 0.8125rem; overflow-wrap: anywhere; }
 .kd-build-sha { font-size: 0.8125rem; color: var(--kd-faint); font-family: ui-monospace, Menlo, Consolas, monospace; }
+.kd-build-sha code { overflow-wrap: anywhere; }
 .kd-build-note { font-size: 0.875rem; color: var(--kd-muted); border-top: 1px solid var(--kd-border); padding-top: 14px; }
 .kd-help-shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 32px 0; }
 .kd-help-shots figure { margin: 0; }
@@ -619,10 +625,11 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .kd-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; list-style: none; }
 .kd-chips li { border: 1px solid var(--kd-border); border-radius: 4px; padding: 6px 12px; font-size: 0.875rem; color: var(--kd-ink); background: var(--kd-bg); }
 .kd-code { position: relative; display: flex; gap: 12px; align-items: stretch; margin: 16px 0 24px; }
-.kd-code pre { flex: 1; overflow-x: auto; padding: 16px; background: var(--kd-soft); border: 1px solid var(--kd-border); border-radius: 4px; font: 0.875rem/1.7 ui-monospace, Menlo, Consolas, monospace; color: var(--kd-ink); }
+.kd-code pre { flex: 1; min-width: 0; overflow-x: auto; padding: 16px; background: var(--kd-soft); border: 1px solid var(--kd-border); border-radius: 4px; font: 0.875rem/1.7 ui-monospace, Menlo, Consolas, monospace; color: var(--kd-ink); }
 .kd-doc h2 { font-size: 2rem; margin: 64px 0 16px; letter-spacing: -0.02em; }
 .kd-doc h3 { margin: 32px 0 8px; }
 .kd-doc p { margin-bottom: 16px; }
+.kd-doc code { overflow-wrap: anywhere; }
 .kd-doc ol { padding-left: 24px; margin: 16px 0; color: var(--kd-muted); }
 .kd-doc ol li { padding: 6px 0 6px 8px; }
 .kd-doc a:not(.kd-btn):not(.kd-link) { color: var(--kd-acc); text-underline-offset: 3px; }
