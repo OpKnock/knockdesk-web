@@ -136,10 +136,13 @@ export function SiteEffects() {
       // reduced-motion mode. Content remains fully available immediately.
       gsap.set(revealed, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
       markStarted(revealed);
-      gsap.set("[data-hero-copy], [data-hero-copy] > *, [data-hero-panel]", {
-        autoAlpha: 1,
-        clearProps: "opacity,visibility,transform",
-      });
+      const hero = gsap.utils.toArray<HTMLElement>(
+        "[data-hero-copy], [data-hero-copy] > *, [data-hero-panel], [data-count]",
+      );
+      gsap.set(hero, { autoAlpha: 1, clearProps: "opacity,visibility,transform" });
+      // Every animated selector is pre-hidden in CSS now, so all of them need
+      // the `.in` marker here or reduced motion would hide its own content.
+      markStarted(hero);
       stories.forEach((story) => {
         story.style.setProperty("--sp", "1");
         const steps = gsap.utils.toArray<HTMLElement>("[data-story-step]", story);
@@ -174,6 +177,15 @@ export function SiteEffects() {
             ease: "power3.out",
             stagger: { each: 0.105, from: "start" },
             clearProps: "opacity,visibility,transform",
+            // Do not render the from-state at creation. ScrollTrigger.refresh()
+            // recreates its triggers, and a fromTo's immediateRender would
+            // re-apply autoAlpha:0 at that moment - so an element that had
+            // already revealed went invisible again about 130ms later and
+            // faded back in, which is the blink this file is about. The
+            // pre-animation hidden state comes from CSS instead (.js
+            // [data-reveal]), which is also what makes it work from the very
+            // first paint.
+            immediateRender: false,
             onStart: () => { revealsStarted = true; markStarted(items); },
             scrollTrigger: {
               trigger: parent,
@@ -199,6 +211,9 @@ export function SiteEffects() {
             delay: Number.isFinite(delay) ? Math.min(Math.max(delay, 0), 0.24) : 0,
             ease: "power3.out",
             clearProps: "opacity,visibility,transform",
+            // Same reason as the grouped tween above: no from-state at
+            // creation, so a refresh cannot re-hide a finished reveal.
+            immediateRender: false,
             onStart: () => { revealsStarted = true; markStarted([el]); },
             scrollTrigger: {
               trigger: el,
@@ -220,14 +235,25 @@ export function SiteEffects() {
         gsap.fromTo(
           copyParts,
           { autoAlpha: 0, y: 18 },
-          { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.09, delay: 0.1, ease: "power3.out", clearProps: "opacity,visibility,transform" },
+          {
+            autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.09, delay: 0.1, ease: "power3.out",
+            clearProps: "opacity,visibility,transform",
+            // `.in` takes over from the now-stripped inline styles, so the
+            // parts stay visible instead of falling back to the pre-animation
+            // CSS, which would hide them again.
+            onStart: () => markStarted(copyParts),
+          },
         );
       }
       if (heroPanel) {
         gsap.fromTo(
           heroPanel,
           { autoAlpha: 0, scale: 0.975 },
-          { autoAlpha: 1, scale: 1, duration: 1, delay: 0.2, ease: "power3.out", clearProps: "opacity,visibility" },
+          {
+            autoAlpha: 1, scale: 1, duration: 1, delay: 0.2, ease: "power3.out",
+            clearProps: "opacity,visibility",
+            onStart: () => markStarted([heroPanel]),
+          },
         );
       }
 
@@ -272,10 +298,13 @@ export function SiteEffects() {
         if (!Number.isFinite(target)) return;
         const counter = { value: 0 };
         el.textContent = "0";
+        // The figure is only hidden until the count starts; mark it `.in` on
+        // start so the pre-animation CSS cannot hide it once the count is done.
         gsap.to(counter, {
           value: target,
           duration: 0.9,
           ease: "power2.out",
+          onStart: () => markStarted([el]),
           onUpdate: () => { el.textContent = String(Math.round(counter.value)); },
           scrollTrigger: { trigger: el, start: "top 91%", once: true },
         });

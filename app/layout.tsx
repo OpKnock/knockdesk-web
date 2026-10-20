@@ -47,12 +47,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="js" suppressHydrationWarning>
       <body>
         {/* Applies the theme and the `js` marker before first paint. Kept as a
             separate same-origin file so the CSP needs no 'unsafe-inline' and no
             inline hash that could drift out of sync with this markup. */}
         <script src="/theme-init.js" async={false} />
+        {/* The `js` class is on <html> in the server markup, so `[data-reveal]`
+            starts hidden on the very first paint. It used to be added by the
+            script above, which meant the page painted fully visible, then went
+            blank a moment later, then faded back in - a flash on every visit.
+            With JS off the marker would never be added, so the reveal state is
+            released here explicitly. */}
+        <noscript><style>{`[data-reveal]{opacity:1 !important;visibility:visible !important;transform:none !important}`}</style></noscript>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <MarkSprite />
         <a href="#main" className="kd-skip">Skip to content</a>
