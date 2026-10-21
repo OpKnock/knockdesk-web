@@ -43,7 +43,7 @@ const BUILDS: Build[] = [
     detail: "The same build as an MSIX, with the package identity and publisher Microsoft assigned to the Partner Center account. Needs Windows 10 1809 or later. Larger than the installer because the package format compresses each file on its own.",
     file: "KnockDesk-3.1.12-x64.msix",
     size: "1093 MB",
-    sha: "6CE0EB2250DDDBC7110E7ACDE5F61F8251BF7FEA495CF373D1AF2A7C8D9586FA",
+    sha: "2BD649B7D49B0F62E885968CAAE1264EDC2B19EE36385F1349638372E5572DB6",
     cta: "Download MSIX for Windows",
     check: "Get-FileHash KnockDesk-3.1.12-x64.msix -Algorithm SHA256",
     note: "This is the Microsoft Store package, submitted unsigned so Microsoft can sign it. Once the Store listing is live it installs from the Store with a trusted signature, no admin rights, no leftovers, and in-place updates. The unsigned package is here for reference; to install it directly, turn on Developer Mode and use Add-AppxPackage. For an ordinary install, use the installer above.",
