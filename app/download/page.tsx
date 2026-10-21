@@ -43,7 +43,7 @@ const BUILDS: Build[] = [
     detail: "The same build as an MSIX. Installs with no admin rights, uninstalls without leftovers, and updates in place. Needs Windows 10 1809 or later. Larger than the installer because the package format compresses each file on its own.",
     file: "KnockDesk-3.1.12-x64.msix",
     size: "1055 MB",
-    sha: "77AFBBC9DCC869DA5B2C6F0FF96C136189AE51CCB776BF375CD7A21023F66B77",
+    sha: "9D07BCD094378FB0B3A6DE208E04ED87501639E79C9B17BA2A350B8946B8AA4D",
     cta: "Download MSIX for Windows",
     check: "Get-FileHash KnockDesk-3.1.12-x64.msix -Algorithm SHA256",
     note: "Same signing situation as the installer: valid signature and trusted timestamp, publisher reported as unknown. This is the same Windows build, not a separate one.",
