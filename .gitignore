@@ -1,0 +1,7 @@
+node_modules
+.next
+.env*.local
+*.tsbuildinfo
+
+# Local screenshot output from test/shots.mjs
+test/shots/

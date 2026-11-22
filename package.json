@@ -1,0 +1,40 @@
+{
+  "name": "knockdesk-site",
+  "version": "1.0.4",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3005",
+    "build": "next build",
+    "start": "next start -p 3005",
+    "lint": "eslint .",
+    "audit:prod": "npm audit --omit=dev",
+    "test:verify": "node test/verify.js",
+    "test:a11y": "node test/a11y.js",
+    "test:motion": "node test/motion.mjs",
+    "test:interactions": "node test/interactions.mjs",
+    "test:nav": "node test/nav.js",
+    "test:links": "node test/links.js",
+    "test": "npm run lint && npm run test:verify && npm run test:a11y && npm run test:nav"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.0",
+    "@fontsource-variable/space-grotesk": "^5.2.0",
+    "gsap": "^3.15.0",
+    "next": "^16.4.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "axe-core": "^4.14.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.2",
+    "playwright-core": "^1.64.1",
+    "sharp": "^0.35.5",
+    "typescript": "^5.6.0"
+  },
+  "allowScripts": {
+    "unrs-resolver@1.12.2": true
+  }
+}
